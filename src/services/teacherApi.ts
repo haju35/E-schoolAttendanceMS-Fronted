@@ -1,0 +1,39 @@
+import api from './api';
+
+export const teacherApi = {
+    // Dashboard
+    getDashboard: () => api.get('/teacher/dashboard'),
+    
+    // Profile
+    getProfile: () => api.get('/teacher/profile'),
+    updateProfile: (data: any) => api.put('/teacher/profile', data),
+    
+    // Classes
+    getClasses: () => api.get('/teacher/classes'),
+    getClassStudents: (classId: number, sectionId: number) => 
+        api.get(`/teacher/classes/${classId}/students`, { 
+            params: { section_id: sectionId } 
+        }),
+    
+    // Attendance
+    getAttendanceForm: (classId: number, sectionId: number, date?: string, subjectId: number) => 
+        api.get('/teacher/attendance', { 
+            params: { 
+                class_room_id: classId, 
+                section_id: sectionId,
+                subject_id: subjectId,
+                date: date || new Date().toISOString().split('T')[0]
+            } 
+        }),
+    submitAttendance: (data: any) => api.post('/teacher/attendance', data),
+    updateAttendance: (id: number, data: any) => api.put(`/teacher/attendance/${id}`, data),
+    deleteAttendance: (id: number) => api.delete(`/teacher/attendance/${id}`),
+    
+    // Reports
+    getAttendanceReport: (params: any) => api.get('/teacher/reports/attendance', { params }),
+    
+    // Student Details
+    getStudentDetails: (studentId: number) => api.get(`/teacher/students/${studentId}`),
+};
+
+export default teacherApi;
