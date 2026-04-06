@@ -14,7 +14,7 @@
     <!-- Filters -->
     <div class="bg-white rounded-lg shadow mb-6 p-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input type="text" v-model="filters.search" @input="fetchTeachers" placeholder="Search by name, employee ID, email..." 
+        <input type="text" v-model="filters.search" @input="fetchTeachers" placeholder="Search by name, ID, email..." 
                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         <select v-model="filters.status" @change="fetchTeachers" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
           <option value="">All Status</option>
@@ -30,7 +30,6 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teacher</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Qualification</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
@@ -39,7 +38,6 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-for="teacher in teachers" :key="teacher.id" class="hover:bg-gray-50">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-mono">{{ teacher.employee_id }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
@@ -130,21 +128,6 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
               <input type="email" v-model="form.email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </div>
-            <div v-if="!editingTeacher">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-              <input type="password" v-model="form.password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </div>
-            <div v-if="!editingTeacher">
-              <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
-              <input type="password" v-model="form.password_confirmation" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-              <p v-if="form.password && form.password_confirmation && form.password !== form.password_confirmation" class="text-red-500 text-xs mt-1">
-                Passwords do not match
-              </p>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Employee ID *</label>
-              <input type="text" v-model="form.employee_id" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Qualification</label>
               <input type="text" v-model="form.qualification" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -193,7 +176,6 @@
             <div>
               <h4 class="text-lg font-bold">{{ selectedTeacher.user?.name }}</h4>
               <p class="text-gray-500">{{ selectedTeacher.user?.email }}</p>
-              <p class="text-sm text-gray-400">Employee ID: {{ selectedTeacher.employee_id }}</p>
             </div>
           </div>
           
@@ -243,9 +225,6 @@ const form = ref({
   id: null,
   name: '',
   email: '',
-  password: '',
-  password_confirmation: '',
-  employee_id: '',
   qualification: '',
   joining_date: new Date().toISOString().split('T')[0],
   phone: '',
@@ -266,9 +245,6 @@ const openAddModal = () => {
     id: null,
     name: '',
     email: '',
-    password: '',
-    password_confirmation: '',
-    employee_id: '',
     qualification: '',
     joining_date: new Date().toISOString().split('T')[0],
     phone: '',
@@ -304,19 +280,6 @@ const fetchTeachers = async () => {
 const saveTeacher = async () => {
   // Clear previous validation errors
   validationErrors.value = [];
-  
-  // Client-side validation
-  if (!editingTeacher.value && form.value.password !== form.value.password_confirmation) {
-    validationErrors.value.push('Password and confirmation password do not match');
-    toast.error('Passwords do not match');
-    return;
-  }
-  
-  if (!editingTeacher.value && form.value.password && form.value.password.length < 8) {
-    validationErrors.value.push('Password must be at least 8 characters');
-    toast.error('Password must be at least 8 characters');
-    return;
-  }
 
   submitting.value = true;
   
@@ -324,9 +287,6 @@ const saveTeacher = async () => {
   console.log('Sending teacher data:', {
     name: form.value.name,
     email: form.value.email,
-    employee_id: form.value.employee_id,
-    password: form.value.password ? '***' : '(empty)',
-    password_confirmation: form.value.password_confirmation ? '***' : '(empty)',
     qualification: form.value.qualification,
     joining_date: form.value.joining_date,
     phone: form.value.phone,
@@ -341,18 +301,12 @@ const saveTeacher = async () => {
       const updateData: any = {
         name: form.value.name,
         email: form.value.email,
-        employee_id: form.value.employee_id,
         qualification: form.value.qualification,
         joining_date: form.value.joining_date,
         phone: form.value.phone,
         address: form.value.address
       };
       
-      // Only include password if it's provided
-      if (form.value.password) {
-        updateData.password = form.value.password;
-        updateData.password_confirmation = form.value.password_confirmation;
-      }
       
       response = await api.put(`/admin/teachers/${form.value.id}`, updateData);
     } else {
@@ -360,9 +314,6 @@ const saveTeacher = async () => {
       const createData = {
         name: form.value.name,
         email: form.value.email,
-        password: form.value.password,
-        password_confirmation: form.value.password_confirmation,
-        employee_id: form.value.employee_id,
         qualification: form.value.qualification,
         joining_date: form.value.joining_date,
         phone: form.value.phone,
@@ -434,9 +385,6 @@ const editTeacher = (teacher: any) => {
     id: teacher.id,
     name: teacher.user?.name || '',
     email: teacher.user?.email || '',
-    password: '',
-    password_confirmation: '',
-    employee_id: teacher.employee_id || '',
     qualification: teacher.qualification || '',
     joining_date: teacher.joining_date || new Date().toISOString().split('T')[0],
     phone: teacher.user?.phone || '',
@@ -485,9 +433,6 @@ const closeModal = () => {
     id: null,
     name: '',
     email: '',
-    password: '',
-    password_confirmation: '',
-    employee_id: '',
     qualification: '',
     joining_date: new Date().toISOString().split('T')[0],
     phone: '',

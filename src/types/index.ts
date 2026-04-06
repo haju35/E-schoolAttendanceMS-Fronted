@@ -29,7 +29,6 @@ export interface Student {
 export interface Teacher {
   id: number;
   user_id: number;
-  employee_id: string;
   qualification: string;
   joining_date: string;
   user?: User;

@@ -71,15 +71,6 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label class="block text-sm font-medium mb-1">Name *</label><input type="text" v-model="form.name" required class="w-full px-3 py-2 border rounded-md"></div>
             <div><label class="block text-sm font-medium mb-1">Email *</label><input type="email" v-model="form.email" required class="w-full px-3 py-2 border rounded-md"></div>
-            
-            <div v-if="!editingFamily">
-              <label class="block text-sm font-medium mb-1">Password *</label>
-              <input type="password" v-model="form.password" required class="w-full px-3 py-2 border rounded-md">
-            </div>
-            <div v-if="!editingFamily">
-              <label class="block text-sm font-medium mb-1">Confirm Password *</label>
-              <input type="password" v-model="form.password_confirmation" required class="w-full px-3 py-2 border rounded-md">
-            </div>
 
             <div><label class="block text-sm font-medium mb-1">Phone</label><input type="tel" v-model="form.phone" class="w-full px-3 py-2 border rounded-md"></div>
             <div><label class="block text-sm font-medium mb-1">Occupation</label><input type="text" v-model="form.occupation" class="w-full px-3 py-2 border rounded-md"></div>
@@ -127,8 +118,6 @@ const form = ref({
   id: null,
   name: '',
   email: '',
-  password: '',
-  password_confirmation: '',
   phone: '',
   address: '',
   occupation: '',
@@ -160,7 +149,7 @@ const fetchStudents = async () => {
 
 const openAddModal = () => {
   editingFamily.value = false;
-  form.value = { id: null, name: '', email: '', password: '', password_confirmation: '', phone: '', address: '', occupation: '', emergency_contact: '', student_ids: [] };
+  form.value = { id: null, name: '', email: '', phone: '', address: '', occupation: '', emergency_contact: '', student_ids: [] };
   showModal.value = true;
 };
 
@@ -168,7 +157,6 @@ const saveFamily = async () => {
   submitting.value = true;
   try {
     let payload = { ...form.value };
-    if (!editingFamily.value) payload.password_confirmation = form.value.password_confirmation;
 
     let response;
     if (editingFamily.value) {
@@ -195,8 +183,6 @@ const editFamily = (family: any) => {
     id: family.id,
     name: family.user?.name || '',
     email: family.user?.email || '',
-    password: '',
-    password_confirmation: '',
     phone: family.user?.phone || '',
     address: family.user?.address || '',
     occupation: family.occupation || '',
@@ -216,7 +202,7 @@ const deleteFamily = async (id: number) => {
 const closeModal = () => {
   showModal.value = false;
   editingFamily.value = false;
-  form.value = { id: null, name: '', email: '', password: '', password_confirmation: '', phone: '', address: '', occupation: '', emergency_contact: '', student_ids: [] };
+  form.value = { id: null, name: '', email: '', phone: '', address: '', occupation: '', emergency_contact: '', student_ids: [] };
 };
 
 onMounted(() => { fetchFamilies(); fetchStudents(); });
