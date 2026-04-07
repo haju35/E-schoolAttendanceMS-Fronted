@@ -46,15 +46,28 @@
       <div v-if="importResult" class="mt-3 p-3 rounded" 
            :class="importResult.failed > 0 ? 'bg-yellow-50 border border-yellow-200' : 'bg-green-50 border border-green-200'">
         <p class="font-semibold">Import Results:</p>
-        <p>Total: {{ importResult.total }}</p>
-        <p>Success: {{ importResult.success }}</p>
-        <p>Failed: {{ importResult.failed }}</p>
-        <div v-if="importResult.errors && importResult.errors.length" class="mt-2">
+        <p><strong>Total:</strong> {{ importResult.total || 0 }}</p>
+        <p><strong>Success:</strong> {{ importResult.success || 0 }}</p>
+        <p><strong>Failed:</strong> {{ importResult.failed || 0 }}</p>
+        
+        <!-- Show errors if any -->
+        <div v-if="importResult.errors && importResult.errors.length > 0" class="mt-2">
           <details>
-            <summary class="cursor-pointer text-red-600">View Errors ({{ importResult.errors.length }})</summary>
-            <div class="mt-2 max-h-40 overflow-y-auto text-sm">
-              <div v-for="(error, idx) in importResult.errors" :key="idx" class="text-red-600 mb-1">
-                Row {{ error.row }}: {{ Array.isArray(error.errors) ? error.errors.join(', ') : error.errors }}
+            <summary class="cursor-pointer text-red-600 font-semibold">
+              View Errors ({{ importResult.errors.length }})
+            </summary>
+            <div class="mt-2 max-h-60 overflow-y-auto text-sm bg-white p-2 rounded border">
+              <div v-for="(error, idx) in importResult.errors" :key="idx" class="text-red-600 mb-2 pb-2 border-b">
+                <strong>Row {{ error.row }}:</strong>
+                <div v-if="error.errors">
+                  {{ Array.isArray(error.errors) ? error.errors.join(', ') : error.errors }}
+                </div>
+                <div v-else-if="error.error">
+                  {{ error.error }}
+                </div>
+                <div v-else>
+                  {{ JSON.stringify(error) }}
+                </div>
               </div>
             </div>
           </details>
@@ -378,15 +391,25 @@ const importStudents = async () => {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     
-    importResult.value = response.data.data;
-    
     if (response.data.success) {
+      // Set import results with correct mapping
+      importResult.value = {
+        total: response.data.data?.total || 0,
+        success: response.data.data?.success || 0,
+        failed: response.data.data?.failed || 0,
+        errors: response.data.data?.errors || []
+      };
+      
+      // Show success message
       alert(response.data.message);
-      file.value = null;
+      
       // Reset file input
+      file.value = null;
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = '';
-      fetchStudents(); // Refresh the student table
+      
+      // Refresh the student table
+      await fetchStudents();
     } else {
       alert('Import failed: ' + response.data.message);
     }
@@ -394,8 +417,15 @@ const importStudents = async () => {
     console.error('Import error:', err);
     const errorMessage = err.response?.data?.message || 'Failed to import students';
     alert(errorMessage);
+    
+    // Show error details if available
     if (err.response?.data?.errors) {
-      console.error('Validation errors:', err.response.data.errors);
+      importResult.value = {
+        total: 0,
+        success: 0,
+        failed: 1,
+        errors: [{ row: 0, errors: [err.response.data.errors] }]
+      };
     }
   } finally {
     importing.value = false;
@@ -514,7 +544,6 @@ const deleteStudent = async (id) => {
 // Edit student (placeholder)
 const editStudent = (student) => {
   console.log("Edit student", student);
-  // Implement edit functionality here
   alert("Edit functionality coming soon");
 };
 

@@ -144,7 +144,7 @@ const handleLogin = async () => {
       } else if (role === 'teacher') {
         router.push('/teacher/dashboard')
       } else if (role === 'student') {
-        window.location.href = 'http://localhost:8000/student/dashboard'
+        router.push('/student/dashboard')
       } else if (role === 'family') {
         window.location.href = 'http://localhost:8000/family/dashboard'
       } else {

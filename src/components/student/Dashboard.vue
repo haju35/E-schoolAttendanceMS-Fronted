@@ -2,7 +2,7 @@
   <div class="p-6 max-w-7xl mx-auto">
     <!-- Welcome -->
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Welcome back, {{ studentName }}!</h1>
+      <h1 class="text-2xl font-bold text-gray-800">Welcome back, {{ name }}!</h1>
       <p class="text-gray-600">Your attendance summary</p>
     </div>
 
@@ -10,12 +10,12 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
       <div class="bg-white rounded-lg shadow p-6">
         <p class="text-gray-500 text-sm">Attendance Rate</p>
-        <p class="text-2xl font-bold text-green-600">{{ stats.attendance_rate }}%</p>
+        <p class="text-2xl font-bold text-green-600">{{ stats.attendance_rate || 0 }}%</p>
       </div>
 
       <div class="bg-white rounded-lg shadow p-6">
         <p class="text-gray-500 text-sm">Days Present</p>
-        <p class="text-2xl font-bold text-blue-600">{{ stats.present_days }}</p>
+        <p class="text-2xl font-bold text-blue-600">{{ stats.present_days || 0 }}</p>
       </div>
 
       <div class="bg-white rounded-lg shadow p-6">
