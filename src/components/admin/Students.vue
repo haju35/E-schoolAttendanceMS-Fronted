@@ -75,88 +75,113 @@
       </div>
     </div>
 
-    <!-- Search -->
-    <div class="mb-4">
+    <!-- Search and Delete Section -->
+    <div class="mb-4 flex flex-col md:flex-row gap-3">
       <input
         v-model="search"
         @input="fetchStudents"
         type="text"
         placeholder="Search student..."
-        class="w-full md:w-1/3 border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+        class="flex-1 md:w-1/3 border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
       />
+      <button
+        @click="deleteSelected"
+        :disabled="selectedStudents.length === 0"
+        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50 transition"
+      >
+        Delete Selected ({{ selectedStudents.length }})
+      </button>
     </div>
 
     <!-- Table -->
     <div class="bg-white shadow-md rounded-lg overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="p-3 text-left">#</th>
-            <th class="p-3 text-left">Name</th>
-            <th class="p-3 text-left">Email</th>
-            <th class="p-3 text-left">Admission No</th>
-            <th class="p-3 text-left">Class</th>
-            <th class="p-3 text-left">Section</th>
-            <th class="p-3 text-right">Actions</th>
-          </tr>
-        </thead>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-3 w-12">
+                <input 
+                  type="checkbox" 
+                  @change="toggleAll" 
+                  :checked="isAllSelected"
+                  class="rounded border-gray-300"
+                />
+              </th>
+              <th class="p-3 text-left">#</th>
+              <th class="p-3 text-left">Name</th>
+              <th class="p-3 text-left">Email</th>
+              <th class="p-3 text-left">Admission No</th>
+              <th class="p-3 text-left">Class</th>
+              <th class="p-3 text-left">Section</th>
+              <th class="p-3 text-right">Actions</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          <tr
-            v-for="(student, index) in students.data"
-            :key="student.id"
-            class="border-t hover:bg-gray-50 transition"
-          >
-            <td class="p-3">{{ index + 1 }}</td>
-            <td class="p-3">{{ student.user?.name }}</td>
-            <td class="p-3">{{ student.user?.email }}</td>
-            <td class="p-3">{{ student.admission_number }}</td>
-            <td class="p-3">{{ student.currentClass?.name }}</td>
-            <td class="p-3">{{ student.currentSection?.name }}</td>
-            <td class="p-3 text-right space-x-2">
-              <button
-                @click="editStudent(student)"
-                class="text-yellow-600 hover:underline"
-              >
-                Edit
-              </button>
-              <button
-                @click="deleteStudent(student.id)"
-                class="text-red-600 hover:underline"
-              >
-                Delete
-              </button>
-            </td>
-          </tr>
+          <tbody>
+            <tr
+              v-for="(student, index) in students.data"
+              :key="student.id"
+              class="border-t hover:bg-gray-50 transition"
+            >
+              <td class="p-3">
+                <input 
+                  type="checkbox" 
+                  :value="student.id"
+                  v-model="selectedStudents"
+                  class="rounded border-gray-300"
+                />
+              </td>
+              <td class="p-3">{{ index + 1 }}</td>
+              <td class="p-3">{{ student.user?.name }}</td>
+              <td class="p-3">{{ student.user?.email }}</td>
+              <td class="p-3">{{ student.admission_number }}</td>
+              <td class="p-3">{{ student.currentClass?.name }}</td>
+              <td class="p-3">{{ student.currentSection?.name }}</td>
+              <td class="p-3 text-right space-x-2 whitespace-nowrap">
+                <button
+                  @click="editStudent(student)"
+                  class="text-yellow-600 hover:text-yellow-800 transition"
+                >
+                  Edit
+                </button>
+                <button
+                  @click="deleteStudent(student.id)"
+                  class="text-red-600 hover:text-red-800 transition"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
 
-          <tr v-if="!students.data || students.data.length === 0">
-            <td colspan="7" class="text-center p-4 text-gray-500">
-              No students found.
-            </td>
-          </tr>
-        </tbody>
-      </table>
+            <tr v-if="!students.data || students.data.length === 0">
+              <td colspan="8" class="text-center p-4 text-gray-500">
+                No students found.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <!-- Pagination -->
       <div
-        class="mt-4 flex justify-center items-center space-x-2 p-4"
-        v-if="students.meta"
+        v-if="students.meta && students.meta.last_page > 1"
+        class="mt-4 flex justify-center items-center space-x-2 p-4 border-t"
       >
         <button
-          class="px-3 py-1 border rounded disabled:opacity-50"
-          :disabled="!students.links?.prev"
+          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 transition"
+          :disabled="students.meta.current_page === 1"
           @click="fetchStudents(students.meta.current_page - 1)"
         >
-          Prev
+          Previous
         </button>
 
         <span class="px-3 py-1">
-          {{ students.meta.current_page }} / {{ students.meta.last_page }}
+          Page {{ students.meta.current_page }} of {{ students.meta.last_page }}
         </span>
 
         <button
-          class="px-3 py-1 border rounded disabled:opacity-50"
-          :disabled="!students.links?.next"
+          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 transition"
+          :disabled="students.meta.current_page === students.meta.last_page"
           @click="fetchStudents(students.meta.current_page + 1)"
         >
           Next
@@ -164,29 +189,33 @@
       </div>
     </div>
 
-    <!-- Add Student Modal -->
+    <!-- Add/Edit Student Modal -->
     <div
       v-if="showModal"
       class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+      @click.self="showModal = false"
     >
       <div
-        class="bg-white w-full max-w-xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]"
+        class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]"
       >
-        <h3 class="text-xl font-semibold mb-4 text-gray-800">Add Student</h3>
+        <h3 class="text-xl font-semibold mb-4 text-gray-800">
+          {{ editingStudent ? 'Edit Student' : 'Add Student' }}
+        </h3>
 
-        <form @submit.prevent="createStudent" class="space-y-4">
+        <form @submit.prevent="saveStudent" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm mb-1">Name *</label>
+              <label class="block text-sm mb-1 font-medium">Name *</label>
               <input
                 v-model="form.name"
+                type="text"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Email *</label>
+              <label class="block text-sm mb-1 font-medium">Email *</label>
               <input
                 v-model="form.email"
                 type="email"
@@ -196,40 +225,44 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Phone</label>
+              <label class="block text-sm mb-1 font-medium">Phone</label>
               <input
                 v-model="form.phone"
+                type="text"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Address</label>
+              <label class="block text-sm mb-1 font-medium">Address</label>
               <input
                 v-model="form.address"
+                type="text"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Admission Number *</label>
+              <label class="block text-sm mb-1 font-medium">Admission Number *</label>
               <input
                 v-model="form.admission_number"
+                type="text"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Roll Number</label>
+              <label class="block text-sm mb-1 font-medium">Roll Number</label>
               <input
                 v-model="form.roll_number"
+                type="text"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Date of Birth</label>
+              <label class="block text-sm mb-1 font-medium">Date of Birth</label>
               <input
                 v-model="form.date_of_birth"
                 type="date"
@@ -238,7 +271,7 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Gender</label>
+              <label class="block text-sm mb-1 font-medium">Gender</label>
               <select
                 v-model="form.gender"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
@@ -249,7 +282,7 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Class *</label>
+              <label class="block text-sm mb-1 font-medium">Class *</label>
               <select
                 v-model="form.current_class_id"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
@@ -263,7 +296,7 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Section *</label>
+              <label class="block text-sm mb-1 font-medium">Section *</label>
               <select
                 v-model="form.current_section_id"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
@@ -277,7 +310,7 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1">Admission Date</label>
+              <label class="block text-sm mb-1 font-medium">Admission Date</label>
               <input
                 v-model="form.admission_date"
                 type="date"
@@ -286,11 +319,11 @@
             </div>
           </div>
 
-          <div class="flex justify-end space-x-2 mt-4">
+          <div class="flex justify-end space-x-2 mt-4 pt-4 border-t">
             <button
               type="button"
-              @click="showModal = false"
-              class="px-4 py-2 border rounded hover:bg-gray-100"
+              @click="closeModal"
+              class="px-4 py-2 border rounded hover:bg-gray-100 transition"
             >
               Cancel
             </button>
@@ -299,7 +332,7 @@
               type="submit"
               class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
             >
-              Save
+              {{ editingStudent ? 'Update' : 'Save' }}
             </button>
           </div>
         </form>
@@ -309,7 +342,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
 // State variables
@@ -321,6 +354,14 @@ const search = ref("");
 const showModal = ref(false);
 const importing = ref(false);
 const importResult = ref(null);
+const selectedStudents = ref([]);
+const editingStudent = ref(null);
+
+// Computed property for "select all" state
+const isAllSelected = computed(() => {
+  return students.value.data.length > 0 && 
+         selectedStudents.value.length === students.value.data.length;
+});
 
 // Get token and setup API
 const token = localStorage.getItem("access_token");
@@ -333,6 +374,18 @@ const api = axios.create({
     'Content-Type': 'application/json'
   }
 });
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('access_token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 const form = ref({
   name: "",
@@ -348,10 +401,43 @@ const form = ref({
   admission_date: "",
 });
 
+// Reset form
+const resetForm = () => {
+  form.value = {
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    admission_number: "",
+    roll_number: "",
+    date_of_birth: "",
+    gender: "female",
+    current_class_id: "",
+    current_section_id: "",
+    admission_date: "",
+  };
+  editingStudent.value = null;
+};
+
+// Close modal
+const closeModal = () => {
+  showModal.value = false;
+  resetForm();
+};
+
+// Toggle select all
+const toggleAll = (event) => {
+  if (event.target.checked) {
+    selectedStudents.value = students.value.data.map(s => s.id);
+  } else {
+    selectedStudents.value = [];
+  }
+};
+
 // File handling
 const handleFileUpload = (event) => {
   file.value = event.target.files[0];
-  importResult.value = null; // Clear previous results
+  importResult.value = null;
 };
 
 // Download template
@@ -392,7 +478,6 @@ const importStudents = async () => {
     });
     
     if (response.data.success) {
-      // Set import results with correct mapping
       importResult.value = {
         total: response.data.data?.total || 0,
         success: response.data.data?.success || 0,
@@ -400,7 +485,6 @@ const importStudents = async () => {
         errors: response.data.data?.errors || []
       };
       
-      // Show success message
       alert(response.data.message);
       
       // Reset file input
@@ -408,7 +492,6 @@ const importStudents = async () => {
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = '';
       
-      // Refresh the student table
       await fetchStudents();
     } else {
       alert('Import failed: ' + response.data.message);
@@ -418,7 +501,6 @@ const importStudents = async () => {
     const errorMessage = err.response?.data?.message || 'Failed to import students';
     alert(errorMessage);
     
-    // Show error details if available
     if (err.response?.data?.errors) {
       importResult.value = {
         total: 0,
@@ -442,24 +524,20 @@ const fetchStudents = async (page = 1) => {
     
     const res = await api.get(url);
     
-    // Handle different response structures
     let studentsData = [];
     let meta = null;
     let links = {};
     
-    if (res.data.data.data) {
-      // Paginated response
+    if (res.data.data?.data) {
       studentsData = res.data.data.data;
       meta = res.data.data.meta;
       links = res.data.data.links;
     } else if (Array.isArray(res.data.data)) {
-      // Non-paginated response
       studentsData = res.data.data;
     } else {
       studentsData = [];
     }
     
-    // Map backend snake_case to camelCase for display
     students.value = {
       data: studentsData.map((s) => ({
         ...s,
@@ -469,6 +547,9 @@ const fetchStudents = async (page = 1) => {
       meta: meta,
       links: links,
     };
+    
+    // Clear selected students when changing pages or searching
+    selectedStudents.value = [];
   } catch (err) {
     console.error('Error fetching students:', err);
     students.value = { data: [], meta: null, links: {} };
@@ -479,7 +560,7 @@ const fetchStudents = async (page = 1) => {
 const fetchClasses = async () => {
   try {
     const res = await api.get('/admin/classes');
-    classes.value = res.data.data.data || res.data.data || [];
+    classes.value = res.data.data?.data || res.data.data || [];
   } catch (err) {
     console.error('Error fetching classes:', err);
     classes.value = [];
@@ -490,61 +571,118 @@ const fetchClasses = async () => {
 const fetchSections = async () => {
   try {
     const res = await api.get('/admin/sections');
-    sections.value = res.data.data.data || res.data.data || [];
+    sections.value = res.data.data?.data || res.data.data || [];
   } catch (err) {
     console.error('Error fetching sections:', err);
     sections.value = [];
   }
 };
 
-// Create single student
-const createStudent = async () => {
+// Create or update student
+const saveStudent = async () => {
   try {
-    const response = await api.post('/admin/students', form.value);
-    alert(response.data.message || "Student created successfully. Credentials sent to email.");
-    showModal.value = false;
+    let response;
+    if (editingStudent.value) {
+      // Update existing student
+      response = await api.put(`/admin/students/${editingStudent.value.id}`, form.value);
+      alert(response.data.message || "Student updated successfully");
+    } else {
+      // Create new student
+      response = await api.post('/admin/students', form.value);
+      alert(response.data.message || "Student created successfully. Credentials sent to email.");
+    }
     
-    // Reset form
-    form.value = {
-      name: "",
-      email: "",
-      phone: "",
-      address: "",
-      admission_number: "",
-      roll_number: "",
-      date_of_birth: "",
-      gender: "female",
-      current_class_id: "",
-      current_section_id: "",
-      admission_date: "",
-    };
-    
-    fetchStudents();
+    closeModal();
+    await fetchStudents();
   } catch (err) {
-    console.error('Error creating student:', err.response?.data || err);
-    const errorMessage = err.response?.data?.message || "Error creating student";
+    console.error('Error saving student:', err.response?.data || err);
+    const errorMessage = err.response?.data?.message || "Error saving student";
     alert(errorMessage);
   }
 };
 
-// Delete student
+// Delete single student
 const deleteStudent = async (id) => {
   if (!confirm("Delete this student? This action cannot be undone.")) return;
   
   try {
     await api.delete(`/admin/students/${id}`);
     alert("Student deleted successfully");
-    fetchStudents();
+    
+    // Remove from selectedStudents if present
+    selectedStudents.value = selectedStudents.value.filter(selectedId => selectedId !== id);
+    
+    await fetchStudents();
   } catch (err) {
     console.error('Error deleting student:', err);
-    alert("Failed to delete student");
+    const errorMessage = err.response?.data?.message || "Failed to delete student";
+    alert(errorMessage);
   }
 };
 
-// Edit student (placeholder)
+// Bulk delete students
+const deleteSelected = async () => {
+  if (selectedStudents.value.length === 0) {
+    alert("No students selected");
+    return;
+  }
+
+  if (!confirm(`Delete ${selectedStudents.value.length} student(s)?`)) {
+    return;
+  }
+
+  try {
+    const idsParam = selectedStudents.value.join(',');
+    const response = await api.post('/admin/students/bulk-delete', {
+      ids: selectedStudents.value
+    });
+    
+    if (response.data.success || response.status === 200) {
+      alert(response.data.message || `${selectedStudents.value.length} student(s) deleted successfully`);
+      
+      // Clear selection
+      selectedStudents.value = [];
+      
+      // Refresh the list
+      await fetchStudents();
+    } else {
+      alert('Failed to delete students: ' + (response.data.message || 'Unknown error'));
+    }
+  } catch (err) {
+    console.error('Bulk delete error:', err);
+    
+    // More detailed error handling
+    if (err.response) {
+      const errorMsg = err.response.data?.message || err.response.data?.error || 'Server error';
+      alert(`Failed to delete students: ${errorMsg}`);
+      
+      // Log the full error for debugging
+      console.error('Error details:', err.response.data);
+    } else if (err.request) {
+      alert('No response from server. Please check your connection.');
+    } else {
+      alert(`Error: ${err.message}`);
+    }
+  }
+};
+
+// Edit student
 const editStudent = (student) => {
-  console.log("Edit student", student);
-  alert("Edit functionality coming soon");
+  editingStudent.value = student;
+  form.value = {
+    name: student.user?.name || "",
+    email: student.user?.email || "",
+    phone: student.phone || "",
+    address: student.address || "",
+    admission_number: student.admission_number || "",
+    roll_number: student.roll_number || "",
+    date_of_birth: student.date_of_birth || "",
+    gender: student.gender || "female",
+    current_class_id: student.current_class?.id || "",
+    current_section_id: student.current_section?.id || "",
+    admission_date: student.admission_date || "",
+  };
+  showModal.value = true;
 };
 
 // Lifecycle hooks
@@ -569,5 +707,25 @@ onMounted(() => {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>

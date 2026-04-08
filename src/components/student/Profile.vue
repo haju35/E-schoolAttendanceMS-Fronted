@@ -3,11 +3,27 @@
     <h1 class="text-2xl font-bold mb-4">My Profile</h1>
 
     <!-- Editable Profile Form -->
+     <div class="flex flex-col items-center mb-4">
+        <img 
+          :src="previewImage || (studentInfo.user.photo 
+          ? `http://localhost:8000/storage/${studentInfo.user.photo}` 
+          : 'https://via.placeholder.com/150')" 
+          class="w-32 h-32 rounded-full object-cover border"
+        />
+
+        <input type="file" @change="handleFileUpload" class="mt-2"/>
+        <button 
+          @click="uploadPhoto" 
+          class="bg-green-600 text-white px-4 py-2 rounded mt-2"
+        >
+          Upload Photo
+        </button>
+      </div>
     <div class="bg-white p-6 rounded-lg shadow mb-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="text-gray-700">Full Name</label>
-          <input v-model="studentInfo.user.name" class="w-full border px-3 py-2 rounded"/>
+          <input :value="studentInfo.user.name" disabled class="w-full border px-3 py-2 rounded"/>
         </div>
 
         <div>
@@ -17,7 +33,7 @@
 
         <div>
           <label class="text-gray-700">Address</label>
-          <input v-model="studentInfo.address" class="w-full border px-3 py-2 rounded"/>
+          <input :value="studentInfo.address" disabled class="w-full border px-3 py-2 rounded"/>
         </div>
       </div>
 
@@ -75,6 +91,14 @@ import studentApi from '../../services/studentApi'
 
 const studentInfo = ref({ user: {} })
 const showPasswordModal = ref(false)
+const selectedFile = ref(null)
+const previewImage = ref(null)
+
+const handleFileUpload = (e) => {
+  const file = e.target.files[0]
+  selectedFile.value = file
+  previewImage.value = URL.createObjectURL(file)
+}
 
 const passwordForm = ref({
   current_password: '',
@@ -93,24 +117,27 @@ const fetchProfile = async () => {
 
 const saveProfile = async () => {
   try {
+    console.log('Sending:', studentInfo.value.user.phone)
+
     const payload = {
-      name: studentInfo.value.user.name,
       phone: studentInfo.value.user.phone,
-      address: studentInfo.value.address
     }
-    await studentApi.updateProfile(payload)
+
+    const res = await studentApi.updateProfile(payload)
+
+    console.log('Response:', res.data)
+
     alert('Profile updated successfully!')
     await fetchProfile()
   } catch (err) {
-    console.error('Error updating profile:', err)
+    console.error('FULL ERROR:', err.response || err)
     alert('Failed to update profile')
   }
 }
 
 const changePassword = async () => {
   try {
-    await studentApi.updateProfile(passwordForm.value, 'password') // We'll handle password separately in API
-    const res = await fetch('/api/student/password', {
+    const res = await fetch('http://localhost:8000/api/student/password', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -122,15 +149,37 @@ const changePassword = async () => {
     if (data.success) {
       alert('Password updated successfully!')
       showPasswordModal.value = false
-      passwordForm.value.current_password = ''
-      passwordForm.value.new_password = ''
-      passwordForm.value.new_password_confirmation = ''
+      passwordForm.value = {
+        current_password: '',
+        new_password: '',
+        new_password_confirmation: ''
+      }
     } else {
       alert(data.message || 'Failed to update password')
     }
   } catch (err) {
     console.error('Error updating password:', err)
     alert('Failed to update password')
+  }
+}
+
+const uploadPhoto = async () => {
+  try {
+    const formData = new FormData()
+    formData.append('photo', selectedFile.value)
+
+    await fetch('http://localhost:8000/api/student/photo', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: formData
+    })
+
+    alert('Photo updated!')
+    await fetchProfile()
+  } catch (err) {
+    console.error(err)
   }
 }
 
