@@ -41,38 +41,6 @@
           </button>
         </div>
       </div>
-      
-      <!-- Import Results -->
-      <div v-if="importResult" class="mt-3 p-3 rounded" 
-           :class="importResult.failed > 0 ? 'bg-yellow-50 border border-yellow-200' : 'bg-green-50 border border-green-200'">
-        <p class="font-semibold">Import Results:</p>
-        <p><strong>Total:</strong> {{ importResult.total || 0 }}</p>
-        <p><strong>Success:</strong> {{ importResult.success || 0 }}</p>
-        <p><strong>Failed:</strong> {{ importResult.failed || 0 }}</p>
-        
-        <!-- Show errors if any -->
-        <div v-if="importResult.errors && importResult.errors.length > 0" class="mt-2">
-          <details>
-            <summary class="cursor-pointer text-red-600 font-semibold">
-              View Errors ({{ importResult.errors.length }})
-            </summary>
-            <div class="mt-2 max-h-60 overflow-y-auto text-sm bg-white p-2 rounded border">
-              <div v-for="(error, idx) in importResult.errors" :key="idx" class="text-red-600 mb-2 pb-2 border-b">
-                <strong>Row {{ error.row }}:</strong>
-                <div v-if="error.errors">
-                  {{ Array.isArray(error.errors) ? error.errors.join(', ') : error.errors }}
-                </div>
-                <div v-else-if="error.error">
-                  {{ error.error }}
-                </div>
-                <div v-else>
-                  {{ JSON.stringify(error) }}
-                </div>
-              </div>
-            </div>
-          </details>
-        </div>
-      </div>
     </div>
 
     <!-- Search and Delete Section -->
@@ -299,6 +267,7 @@
               <label class="block text-sm mb-1 font-medium">Section *</label>
               <select
                 v-model="form.current_section_id"
+                :disabled="!form.current_class_id"
                 class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
                 required
               >
@@ -344,6 +313,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
+import { watch } from 'vue';
 
 // State variables
 const file = ref(null);
@@ -356,6 +326,9 @@ const importing = ref(false);
 const importResult = ref(null);
 const selectedStudents = ref([]);
 const editingStudent = ref(null);
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
 
 // Computed property for "select all" state
 const isAllSelected = computed(() => {
@@ -457,14 +430,14 @@ const downloadTemplate = async () => {
     window.URL.revokeObjectURL(url);
   } catch (err) {
     console.error('Error downloading template:', err);
-    alert('Failed to download template. Please try again.');
+    toast.error('Failed to download template. Please try again.');
   }
 };
 
 // Import students
 const importStudents = async () => {
   if (!file.value) {
-    alert('Please select a file');
+    toast.error('Please select a file');
     return;
   }
   
@@ -485,7 +458,7 @@ const importStudents = async () => {
         errors: response.data.data?.errors || []
       };
       
-      alert(response.data.message);
+      toast.success(response.data.message);
       
       // Reset file input
       file.value = null;
@@ -494,12 +467,12 @@ const importStudents = async () => {
       
       await fetchStudents();
     } else {
-      alert('Import failed: ' + response.data.message);
+      toast.error('Import failed: ' + response.data.message);
     }
   } catch (err) {
     console.error('Import error:', err);
     const errorMessage = err.response?.data?.message || 'Failed to import students';
-    alert(errorMessage);
+    toast.error(errorMessage);
     
     if (err.response?.data?.errors) {
       importResult.value = {
@@ -568,15 +541,31 @@ const fetchClasses = async () => {
 };
 
 // Fetch sections
-const fetchSections = async () => {
+const fetchSections = async (classId = null) => {
   try {
-    const res = await api.get('/admin/sections');
-    sections.value = res.data.data?.data || res.data.data || [];
+    let url = '/admin/sections';
+
+    if(classId){
+      url += `?class_room_id=${classId}`;
+    }
+    const res = await api.get(url);
+    sections.value = res.data.data || [];
   } catch (err) {
     console.error('Error fetching sections:', err);
     sections.value = [];
   }
+  
 };
+
+watch(() => form.value.current_class_id, (newClassId) => {
+  if (newClassId) {
+    fetchSections(newClassId);        
+    form.value.current_section_id = "";
+  } else {
+    sections.value = [];
+    form.value.current_section_id = "";
+  }
+});
 
 // Create or update student
 const saveStudent = async () => {
@@ -585,11 +574,11 @@ const saveStudent = async () => {
     if (editingStudent.value) {
       // Update existing student
       response = await api.put(`/admin/students/${editingStudent.value.id}`, form.value);
-      alert(response.data.message || "Student updated successfully");
+      toast.success(response.data.message || "Student updated successfully");
     } else {
       // Create new student
       response = await api.post('/admin/students', form.value);
-      alert(response.data.message || "Student created successfully. Credentials sent to email.");
+      toast.success(response.data.message || "Student created successfully. Credentials sent to email.");
     }
     
     closeModal();
@@ -597,7 +586,7 @@ const saveStudent = async () => {
   } catch (err) {
     console.error('Error saving student:', err.response?.data || err);
     const errorMessage = err.response?.data?.message || "Error saving student";
-    alert(errorMessage);
+    toast.error(errorMessage);
   }
 };
 
@@ -607,7 +596,7 @@ const deleteStudent = async (id) => {
   
   try {
     await api.delete(`/admin/students/${id}`);
-    alert("Student deleted successfully");
+    toast.success("Student deleted successfully");
     
     // Remove from selectedStudents if present
     selectedStudents.value = selectedStudents.value.filter(selectedId => selectedId !== id);
@@ -616,14 +605,14 @@ const deleteStudent = async (id) => {
   } catch (err) {
     console.error('Error deleting student:', err);
     const errorMessage = err.response?.data?.message || "Failed to delete student";
-    alert(errorMessage);
+    toast.error(errorMessage);
   }
 };
 
 // Bulk delete students
 const deleteSelected = async () => {
   if (selectedStudents.value.length === 0) {
-    alert("No students selected");
+    toast.info("No students selected");
     return;
   }
 
@@ -638,7 +627,7 @@ const deleteSelected = async () => {
     });
     
     if (response.data.success || response.status === 200) {
-      alert(response.data.message || `${selectedStudents.value.length} student(s) deleted successfully`);
+      toast.success(response.data.message || `${selectedStudents.value.length} student(s) deleted successfully`);
       
       // Clear selection
       selectedStudents.value = [];
@@ -646,7 +635,7 @@ const deleteSelected = async () => {
       // Refresh the list
       await fetchStudents();
     } else {
-      alert('Failed to delete students: ' + (response.data.message || 'Unknown error'));
+      toast.error('Failed to delete students: ' + (response.data.message || 'Unknown error'));
     }
   } catch (err) {
     console.error('Bulk delete error:', err);
@@ -654,14 +643,14 @@ const deleteSelected = async () => {
     // More detailed error handling
     if (err.response) {
       const errorMsg = err.response.data?.message || err.response.data?.error || 'Server error';
-      alert(`Failed to delete students: ${errorMsg}`);
+      toast.error(`Failed to delete students: ${errorMsg}`);
       
       // Log the full error for debugging
       console.error('Error details:', err.response.data);
     } else if (err.request) {
-      alert('No response from server. Please check your connection.');
+      toast.error('No response from server. Please check your connection.');
     } else {
-      alert(`Error: ${err.message}`);
+      toast.error(`Error: ${err.message}`);
     }
   }
 };
@@ -689,7 +678,7 @@ const editStudent = (student) => {
 onMounted(() => {
   fetchStudents();
   fetchClasses();
-  fetchSections();
+
 });
 </script>
 

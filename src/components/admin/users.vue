@@ -15,7 +15,7 @@
           <option value="admin">Admin</option>
           <option value="teacher">Teacher</option>
           <option value="student">Student</option>
-          <option value="family">Parent</option>
+          <option value="family">Family</option>
         </select>
         
         <select v-model="filters.status" class="px-3 py-2 border border-gray-300 rounded-lg">
@@ -121,9 +121,10 @@
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
             <select v-model="newUser.role" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+              <option value="teacher">Admin</option>
               <option value="teacher">Teacher</option>
               <option value="student">Student</option>
-              <option value="family">Parent/Guardian</option>
+              <option value="family">Family</option>
             </select>
           </div>
           <div class="mb-4">

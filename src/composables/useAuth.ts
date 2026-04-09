@@ -135,7 +135,7 @@ export function useAuth() {
       localStorage.removeItem('user')
       delete axios.defaults.headers.common['Authorization']
       router.push('/login')
-      toast.info('Logged out successfully')
+      //toast.info('Logged out successfully')
     }
   }
   

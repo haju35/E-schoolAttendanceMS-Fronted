@@ -153,162 +153,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Subjects Section -->
-      <div class="bg-white rounded-lg shadow mb-6">
-        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 class="text-lg font-semibold text-gray-900">Subjects</h3>
-          <button 
-            @click="showSubjectModal = true"
-            class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition">
-            + Add Subject
-          </button>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="p-3 text-left">Name</th>
-                <th class="p-3 text-left">Code</th>
-                <th class="p-3 text-left">Classes</th>
-                <th class="p-3 text-left">Created At</th>
-                <th class="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="subject in subjects" :key="subject.id" class="border-t hover:bg-gray-50">
-                <td class="p-3 font-medium">{{ subject.name }}</td>
-                <td class="p-3"><span class="px-2 py-1 bg-gray-100 rounded text-xs">{{ subject.code }}</span></td>
-                <td class="p-3">
-                  <span v-if="subject.classes && subject.classes.length > 0" class="text-sm">
-                    {{ subject.classes.map(c => c.name).join(', ') }}
-                  </span>
-                  <span v-else class="text-gray-400 text-sm">Not assigned</span>
-                </td>
-                <td class="p-3 text-sm text-gray-500">{{ formatDate(subject.created_at) }}</td>
-                <td class="p-3 text-right">
-                  <button 
-                    @click="deleteSubject(subject.id)"
-                    class="text-red-600 hover:text-red-800 hover:underline text-sm">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="subjects.length === 0">
-                <td colspan="5" class="p-8 text-center text-gray-500">
-                  No subjects found. Click "Add Subject" to create one.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Recent Records -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-lg shadow">
-          <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-900">Recent Students</h3>
-            <router-link to="/admin/students" class="text-indigo-600 text-sm hover:underline">View All</router-link>
-          </div>
-          <div class="divide-y divide-gray-200">
-            <div v-for="student in recentStudents" :key="student.id" class="p-4 hover:bg-gray-50 transition">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span class="text-blue-600 font-medium">{{ getInitials(student.user?.name) }}</span>
-                  </div>
-                  <div>
-                    <p class="font-medium text-gray-900">{{ student.user?.name || 'N/A' }}</p>
-                    <p class="text-sm text-gray-500">{{ student.admission_number || 'N/A' }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-sm text-gray-500">{{ student.currentClass?.name || 'No Class' }}</p>
-                  <p class="text-xs text-gray-400">{{ formatDate(student.created_at) }}</p>
-                </div>
-              </div>
-            </div>
-            <div v-if="recentStudents.length === 0" class="p-8 text-center text-gray-500">
-              No students added yet
-            </div>
-          </div>
-        </div>
-        
-        <div class="bg-white rounded-lg shadow">
-          <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-            <h3 class="text-lg font-semibold text-gray-900">Recent Teachers</h3>
-            <router-link to="/admin/teachers" class="text-indigo-600 text-sm hover:underline">View All</router-link>
-          </div>
-          <div class="divide-y divide-gray-200">
-            <div v-for="teacher in recentTeachers" :key="teacher.id" class="p-4 hover:bg-gray-50 transition">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <span class="text-green-600 font-medium">{{ getInitials(teacher.user?.name) }}</span>
-                  </div>
-                  <div>
-                    <p class="font-medium text-gray-900">{{ teacher.user?.name || 'N/A' }}</p>
-                    <p class="text-sm text-gray-500">{{ teacher.employee_id || 'N/A' }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="text-sm text-gray-500">{{ teacher.qualification || 'N/A' }}</p>
-                  <p class="text-xs text-gray-400">{{ formatDate(teacher.created_at) }}</p>
-                </div>
-              </div>
-            </div>
-            <div v-if="recentTeachers.length === 0" class="p-8 text-center text-gray-500">
-              No teachers added yet
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Add Subject Modal -->
-    <div v-if="showSubjectModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="showSubjectModal = false">
-      <div class="bg-white w-full max-w-md p-6 rounded-lg shadow-xl">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New Subject</h3>
-        
-        <form @submit.prevent="createSubject">
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Subject Name *</label>
-            <input 
-              v-model="subjectForm.name" 
-              type="text"
-              class="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              required 
-            />
-          </div>
-
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">Subject Code *</label>
-            <input 
-              v-model="subjectForm.code" 
-              type="text"
-              class="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              required 
-            />
-            <p class="text-xs text-gray-500 mt-1">Example: MATH101, SCI202, ENG101</p>
-          </div>
-
-          <div class="flex justify-end space-x-3 mt-6">
-            <button 
-              type="button" 
-              @click="showSubjectModal = false" 
-              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              :disabled="subjectSubmitting"
-              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
-              {{ subjectSubmitting ? 'Saving...' : 'Save Subject' }}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   </div>
 </template>
@@ -409,6 +253,8 @@ const fetchDashboardData = async () => {
       
       recentStudents.value = data.recent_students || [];
       recentTeachers.value = data.recent_teachers || [];
+      subjects.value = data.subjects || [];
+      loading.value = false;
       
       console.log('Dashboard loaded:', stats.value);
     } else {
@@ -426,7 +272,7 @@ const fetchDashboardData = async () => {
 // Fetch subjects
 const fetchSubjects = async () => {
   try {
-    const response = await api.get('/admin/subjects');
+    const response = await api.get('/admin/subjects', {params: {limit: 'all'}});
     console.log('Subjects response:', response.data);
     
     if (response.data && response.data.data) {
