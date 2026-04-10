@@ -11,6 +11,8 @@ export const studentApi = {
     // Attendance
     getAttendance: (params?: any) => api.get('/student/attendance', { params }),
     getAttendanceSummary: () => api.get('/student/attendance/summary'),
+    updatePassword: (data: any) => api.put('/student/password', data),
+    uploadPhoto: (formData: FormData) => api.post('/student/photo', formData)
 };
 
 export default studentApi;

@@ -4,12 +4,7 @@
 
     <!-- Editable Profile Form -->
      <div class="flex flex-col items-center mb-4">
-        <img 
-          :src="previewImage || (studentInfo.user.photo 
-          ? `http://localhost:8000/storage/${studentInfo.user.photo}` 
-          : 'https://via.placeholder.com/150')" 
-          class="w-32 h-32 rounded-full object-cover border"
-        />
+        <img :src="user.photo ? baseURL + '/storage/' + user.photo : '/favicon.ico'" />
 
         <input type="file" @change="handleFileUpload" class="mt-2"/>
         <button 
@@ -141,7 +136,7 @@ const changePassword = async () => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('token')}` // or your auth token
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}` // or your auth token
       },
       body: JSON.stringify(passwordForm.value)
     })
@@ -171,7 +166,7 @@ const uploadPhoto = async () => {
     await fetch('http://localhost:8000/api/student/photo', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
       },
       body: formData
     })
