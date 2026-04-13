@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import axios from 'axios'
+import api from '@/services/api'
 import type { LoginCredentials, RegisterData, ForgotPasswordData, ResetPasswordData, User, ApiResponse, LoginResponse } from '@/types'
 
 export function useAuth() {
@@ -21,10 +22,10 @@ export function useAuth() {
   const login = async (credentials: LoginCredentials) => {         
     loading.value = true 
     try {
-      const response = await axios.post<ApiResponse<LoginResponse>>('/auth/login', credentials)
+      const response = await api.post<ApiResponse<LoginResponse>>('/auth/login', credentials)
       
-      if (response.data.success && response.data.data) {
-        const { access_token, user: userData } = response.data.data
+      if (response.data.success) {
+        const { access_token, user: userData } = response.data
         
         token.value = access_token
         user.value = userData
@@ -125,7 +126,7 @@ export function useAuth() {
   
   const logout = async () => {
     try {
-      await axios.post('/auth/logout')
+      await api.post('/auth/logout')
     } catch (error) {
       console.error('Logout error:', error)
     } finally {

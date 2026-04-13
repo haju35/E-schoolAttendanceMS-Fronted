@@ -122,18 +122,17 @@ const handleLogin = async () => {
     
     // Check the response structure - your API returns data directly in response.data
     if (response.data.success === true && response.data.access_token) {
-      const { access_token, user, role, token_type } = response.data
-      
-      console.log('Login successful!')
-      console.log('User:', user)
-      console.log('Role:', role)
+      const { access_token, user: userData, role } = response.data
       
       // Store token and user
       localStorage.setItem('access_token', access_token)
-      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('user', JSON.stringify(userData))
       
       // Set axios default header
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+
+      console.log('User:', userData)
+      console.log('Role:', role)
       
       toast.success('Login successful!')
       
@@ -146,7 +145,7 @@ const handleLogin = async () => {
       } else if (role === 'student') {
         router.push('/student/dashboard')
       } else if (role === 'family') {
-        window.location.href = 'http://localhost:8000/family/dashboard'
+        router.push('/family/dashboard')
       } else {
         router.push('/dashboard')
       }
