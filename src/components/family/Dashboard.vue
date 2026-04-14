@@ -212,10 +212,16 @@ const fetchDashboardData = async () => {
   loading.value = true
   try {
     const response = await familyApi.getDashboard()
-    console.log('Dashboard API Response:', response.data)
+    console.log('Full API Response:', response.data)
     
-    children.value = response.data.children || []
-    recentAlerts.value = response.data.recent_alerts || []
+    // Check the response structure
+    let dashboardData = response.data.data || response.data
+    
+    console.log('Dashboard data structure:', dashboardData)
+    console.log('Children:', dashboardData.children)
+    
+    children.value = dashboardData.children || []
+    recentAlerts.value = dashboardData.recent_alerts || []
     
     // Calculate stats
     stats.value.total_children = children.value.length
@@ -233,10 +239,11 @@ const fetchDashboardData = async () => {
       stats.value.total_present = totalPresent
     }
     
-    stats.value.pending_leaves = response.data.pending_leaves || 0
+    stats.value.pending_leaves = dashboardData.pending_leaves || 0
     
   } catch (error: any) {
     console.error('Error fetching dashboard data:', error)
+    console.error('Error response:', error.response?.data)
   } finally {
     loading.value = false
   }

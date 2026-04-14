@@ -44,22 +44,6 @@
       </div>
     </div>
 
-    <!-- Calendar View -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-      <h2 class="text-lg font-semibold mb-4">Attendance Calendar</h2>
-      <div class="grid grid-cols-7 gap-2">
-        <div v-for="day in weekDays" :key="day" class="text-center font-semibold text-gray-600 py-2">
-          {{ day }}
-        </div>
-        <div v-for="day in calendarDays" :key="day.date" 
-             class="text-center p-2 rounded-lg cursor-pointer"
-             :class="getDayClass(day)"
-             @click="showDayDetails(day)">
-          {{ day.day }}
-        </div>
-      </div>
-    </div>
-
     <!-- Detailed Records Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <div class="px-6 py-4 border-b">
@@ -73,7 +57,6 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Day</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Check In Time</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
             </tr>
           </thead>
@@ -87,7 +70,6 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.subject_name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.check_in_time || '-' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.remarks || '-' }}</td>
             </tr>
             <tr v-if="attendanceRecords.length === 0">

@@ -37,6 +37,7 @@ const StudentDashboard = () => import('@/components/student/Dashboard.vue')
 const StudentAttendance = () => import('@/components/student/Attendance.vue')
 const StudentProfile = () => import('@/components/student/Profile.vue')
 
+
 // Lazy load family components
 const FamilyLayout = () => import('@/components/family/FamilyLayout.vue')
 const FamilyDashboard = () => import('@/components/family/Dashboard.vue')
@@ -44,6 +45,7 @@ const FamilyChildren = () => import('@/components/family/Children.vue')
 const FamilyAttendance = () => import('@/components/family/Attendance.vue')
 const FamilyNotifications = () => import('@/components/family/Notifications.vue')
 const FamilyProfile = () => import('@/components/family/Profile.vue')
+const FamilyLeaveRequest = () => import('@/components/family/LeaveRequest.vue')
 
 const routes: RouteRecordRaw[] = [
   // Public routes
@@ -119,8 +121,10 @@ const routes: RouteRecordRaw[] = [
       { path: 'dashboard', name: 'family.dashboard', component: FamilyDashboard, meta: { title: 'Dashboard' } },
       { path: 'children', name: 'family.children', component: FamilyChildren, meta: { title: 'My Children' } },
       { path: 'children/:id', name: 'family.child-details', component: FamilyAttendance, meta: { title: 'Child Attendance' } },
+      { path: 'attendance/:id?', name: 'family.attendance', component: FamilyAttendance, meta: { title: 'Attendance History' } },
       { path: 'notifications', name: 'family.notifications', component: FamilyNotifications, meta: { title: 'Notifications' } },
-      { path: 'profile', name: 'family.profile', component: FamilyProfile, meta: { title: 'Profile' } }
+      { path: 'profile', name: 'family.profile', component: FamilyProfile, meta: { title: 'Profile' } },
+      { path: 'leave', name: 'family.leave', component: FamilyLeaveRequest, meta: { title: 'Submit Leave' } },
     ]
   }
 ]

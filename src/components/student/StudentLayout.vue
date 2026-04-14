@@ -38,7 +38,7 @@
                 <router-link to="/student/profile"
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   @click="showProfileMenu = false">My Profile</router-link>
-                <router-link to="/student/change-password"
+                <router-link to="/student/profile"
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   @click="showProfileMenu = false">Change Password</router-link>
                 <hr class="my-1">

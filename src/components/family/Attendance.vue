@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 max-w-6xl mx-auto">
+  <div class="p-6">
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-800">Attendance History</h1>
       <p class="text-gray-600">View detailed attendance records for your children</p>
@@ -22,19 +22,19 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div class="bg-white rounded-lg shadow p-4">
           <p class="text-sm text-gray-500">Attendance Rate</p>
-          <p class="text-2xl font-bold text-green-600">{{ selectedChild.attendance_rate }}%</p>
+          <p class="text-2xl font-bold text-green-600">{{ selectedChild.attendance_rate || 0 }}%</p>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
           <p class="text-sm text-gray-500">Present Days</p>
-          <p class="text-2xl font-bold text-green-600">{{ selectedChild.present_days }}</p>
+          <p class="text-2xl font-bold text-green-600">{{ selectedChild.present_days || 0 }}</p>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
           <p class="text-sm text-gray-500">Absent Days</p>
-          <p class="text-2xl font-bold text-red-600">{{ selectedChild.absent_days }}</p>
+          <p class="text-2xl font-bold text-red-600">{{ selectedChild.absent_days || 0 }}</p>
         </div>
         <div class="bg-white rounded-lg shadow p-4">
           <p class="text-sm text-gray-500">Late Days</p>
-          <p class="text-2xl font-bold text-yellow-600">{{ selectedChild.late_days }}</p>
+          <p class="text-2xl font-bold text-yellow-600">{{ selectedChild.late_days || 0 }}</p>
         </div>
       </div>
 
@@ -43,7 +43,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Month</label>
-            <select v-model="filters.month" class="input-field" @change="loadAttendance">
+            <select v-model="filters.month" class="w-full px-3 py-2 border rounded-md" @change="loadAttendance">
               <option v-for="month in months" :key="month.value" :value="month.value">
                 {{ month.name }}
               </option>
@@ -52,7 +52,7 @@
           
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
-            <select v-model="filters.year" class="input-field" @change="loadAttendance">
+            <select v-model="filters.year" class="w-full px-3 py-2 border rounded-md" @change="loadAttendance">
               <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
             </select>
           </div>
@@ -71,7 +71,6 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Check In Time</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
               </tr>
             </thead>
@@ -79,16 +78,11 @@
               <tr v-for="record in attendanceRecords" :key="record.id">
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ record.date }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <select v-model="record.status" @change="updateAttendance(record)"
-                          class="px-2 py-1 rounded border text-sm"
-                  >
-                    <option value="present">Present</option>
-                    <option value="absent">Absent</option>
-                    <option value="late">Late</option>
-                  </select>
+                  <span :class="getStatusClass(record.status)" class="px-2 py-1 text-xs rounded-full">
+                    {{ record.status?.toUpperCase() }}
+                  </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.subject_name }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.check_in_time || '-' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.subject_name || 'N/A' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.remarks || '-' }}</td>
               </tr>
               <tr v-if="attendanceRecords.length === 0">
@@ -102,21 +96,21 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useAuth } from '../../composables/useAuth'
 import familyApi from '../../services/familyApi'
 
 const route = useRoute()
-const { token } = useAuth()
-const children = ref<any[]>([])
-const selectedChild = ref<any>(null)
+const children = ref([])
+const selectedChild = ref(null)
+const attendanceRecords = ref([])
+const loading = ref(false)
+
 const filters = ref({
   month: new Date().getMonth() + 1,
   year: new Date().getFullYear()
 })
-const attendanceRecords = ref<any[]>([])
 
 const months = [
   { value: 1, name: 'January' }, { value: 2, name: 'February' },
@@ -127,7 +121,8 @@ const months = [
   { value: 11, name: 'November' }, { value: 12, name: 'December' }
 ]
 
-const years = ref<number[]>([])
+const years = ref([])
+
 const generateYears = () => {
   const currentYear = new Date().getFullYear()
   for (let i = currentYear - 2; i <= currentYear + 1; i++) {
@@ -135,49 +130,57 @@ const generateYears = () => {
   }
 }
 
+const getStatusClass = (status) => {
+  const classes = {
+    present: 'bg-green-100 text-green-800',
+    absent: 'bg-red-100 text-red-800',
+    late: 'bg-yellow-100 text-yellow-800'
+  }
+  return classes[status] || 'bg-gray-100 text-gray-800'
+}
+
 const fetchChildren = async () => {
   try {
     const response = await familyApi.getChildren()
-    children.value = response.data.children
-    
-    // Select child from route or default to first
-    const childId = route.params.id
-    if (childId) {
-      selectedChild.value = children.value.find(c => c.id == childId)
-    } else if (children.value.length > 0) {
-      selectedChild.value = children.value[0]
-    }
-    
-    if (selectedChild.value) {
-      await loadAttendance()
+    if (response.data.success) {
+      children.value = response.data.data.children || []
+      
+      // Select child from route param or default to first
+      const childId = route.params.id
+      if (childId) {
+        selectedChild.value = children.value.find(c => c.id == childId)
+      } else if (children.value.length > 0) {
+        selectedChild.value = children.value[0]
+      }
+      
+      if (selectedChild.value) {
+        await loadAttendance()
+      }
     }
   } catch (error) {
     console.error('Error fetching children:', error)
   }
 }
 
-const selectChild = async (child: any) => {
+const selectChild = async (child) => {
   selectedChild.value = child
   await loadAttendance()
 }
 
 const loadAttendance = async () => {
   if (!selectedChild.value) return
+  
+  loading.value = true
   try {
     const response = await familyApi.getChildAttendance(selectedChild.value.id, filters.value)
-    attendanceRecords.value = response.data.records
-    selectedChild.value = { ...selectedChild.value, ...response.data.stats }
+    if (response.data.success) {
+      attendanceRecords.value = response.data.data.records || []
+      selectedChild.value = { ...selectedChild.value, ...response.data.data.stats }
+    }
   } catch (error) {
     console.error('Error loading attendance:', error)
-  }
-}
-
-const updateAttendance = async (record: any) => {
-  try {
-    await familyApi.updateAttendance(record.id, { status: record.status })
-    await loadAttendance() // refresh stats after update
-  } catch (error) {
-    console.error('Error updating attendance:', error)
+  } finally {
+    loading.value = false
   }
 }
 
