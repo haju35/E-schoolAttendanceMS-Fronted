@@ -11,10 +11,10 @@
               </svg>
             </button>
             <span class="text-xl font-bold text-indigo-600">E-School Attendance</span>
-            <span class="ml-2 text-sm text-gray-500 hidden md:block">Admin Portal</span>
           </div>
           
           <div class="flex items-center space-x-4">
+            <ThemeToggle />
             <div class="relative">
               <button @click="toggleProfileMenu" class="flex items-center space-x-2 focus:outline-none">
                 <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -137,6 +137,21 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             Reports
+          </router-link>
+
+          <!-- Role & Permission Management -->
+          <router-link 
+            to="/admin/roles" 
+            class="group flex items-center px-2 py-2 text-base font-medium rounded-md"
+            :class="[$route.path === '/admin/roles' ? 'bg-indigo-100 text-indigo-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900']"
+          >
+            <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 11c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4zm0 0V5m0 6v6m0 0H8m4 0h4">
+              </path>
+            </svg>
+
+            Roles & Permissions
           </router-link>
         </nav>
       </div>

@@ -5,19 +5,20 @@ import axios from 'axios'
 import api from '@/services/api'
 import type { LoginCredentials, RegisterData, ForgotPasswordData, ResetPasswordData, User, ApiResponse, LoginResponse } from '@/types'
 
+const user = ref<User | null>(null)          
+const token = ref<string | null>(localStorage.getItem('access_token'))    
+const loading = ref(false)                    
+
+// Set axios header if token exists
+if (token.value) {
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`}
+
 export function useAuth() {
   const router = useRouter()
   const toast = useToast()
 
-  const user = ref<User | null>(null)           // Current user data
-  const token = ref<string | null>(localStorage.getItem('access_token'))        // JWT token
-  const loading = ref(false)                    // Loading state
   const isAuthenticated = computed(() => !!token.value)  // Auth status
 
-  // Set axios header if token exists
-  if (token.value) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
-  }
   
   const login = async (credentials: LoginCredentials) => {         
     loading.value = true 
@@ -26,6 +27,9 @@ export function useAuth() {
       
       if (response.data.success) {
         const { access_token, user: userData } = response.data
+
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('user')
         
         token.value = access_token
         user.value = userData
@@ -38,17 +42,14 @@ export function useAuth() {
         toast.success('Login successful!')
         
         // Redirect based on role
-        setTimeout(() => {
-          redirectByRole(userData.role)
-        }, 1000)
+        redirectByRole(userData.role)
         
         return true
       }
-      
+      toast.error('Login failed')
       return false
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Login failed'
-      toast.error(message)
+      toast.error(error.response?.data?.message || 'Login failed')
       return false
     } finally {
       loading.value = false
@@ -136,7 +137,6 @@ export function useAuth() {
       localStorage.removeItem('user')
       delete axios.defaults.headers.common['Authorization']
       router.push('/login')
-      //toast.info('Logged out successfully')
     }
   }
   
@@ -157,22 +157,14 @@ export function useAuth() {
   }
   
   const redirectByRole = (role: string) => {
-    switch (role) {
-      case 'admin':
-        router.push('/admin/dashboard')
-        break
-      case 'teacher':
-        router.push('/teacher/dashboard')
-        break
-      case 'student':
-        router.push('/student/dashboard')
-        break
-      case 'family':
-        router.push('/family/dashboard')
-        break
-      default:
-        router.push('/dashboard')
-  }
+   const routes: Record<string, string> = {
+    admin: '/admin/dashboard',
+    teacher: '/teacher/dashboard',
+    student: '/student/dashboard',
+    family: '/family/dashboard'
+   }
+
+   router.push(routes[role] || '/login')
 }
   
   return { 

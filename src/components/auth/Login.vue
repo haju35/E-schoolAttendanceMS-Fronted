@@ -94,6 +94,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import axios from 'axios'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
 const toast = useToast()
@@ -109,61 +110,48 @@ const showPassword = ref(false)
 
 const handleLogin = async () => {
   loading.value = true
-  
+
   try {
-    const apiUrl = 'http://localhost:8000/api/auth/login'
-    
-    const response = await axios.post(apiUrl, {
+    const response = await axios.post('http://localhost:8000/api/auth/login', {
       email: form.email,
       password: form.password
     })
-    
-    console.log('Login response:', response.data)
-    
-    // Check the response structure - your API returns data directly in response.data
-    if (response.data.success === true && response.data.access_token) {
-      const { access_token, user: userData, role } = response.data
-      
-      // Store token and user
+
+    if (response.data.success) {
+      const { access_token, user: userData } = response.data
+
       localStorage.setItem('access_token', access_token)
       localStorage.setItem('user', JSON.stringify(userData))
-      
-      // Set axios default header
+
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
 
-      console.log('User:', userData)
-      console.log('Role:', role)
-      
       toast.success('Login successful!')
-      
-      // Redirect based on role
-      if (role === 'admin') {
-        console.log('Redirecting to admin dashboard...')
-        router.push('/admin/dashboard')
-      } else if (role === 'teacher') {
-        router.push('/teacher/dashboard')
-      } else if (role === 'student') {
-        router.push('/student/dashboard')
-      } else if (role === 'family') {
-        router.push('/family/dashboard')
-      } else {
-        router.push('/dashboard')
+
+      // IMPORTANT: redirect by role (FIX HERE)
+      switch (userData.role) {
+        case 'admin':
+          router.push('/admin/dashboard')
+          break
+        case 'teacher':
+          router.push('/teacher/dashboard')
+          break
+        case 'student':
+          router.push('/student/dashboard')
+          break
+        case 'family':
+          router.push('/family/dashboard')
+          break
+        default:
+          router.push('/login')
       }
-    } else {
-      console.log('Login failed:', response.data.message)
-      toast.error(response.data.message || 'Invalid credentials')
+
+      return
     }
+
+    toast.error('Invalid credentials')
   } catch (error: any) {
-    console.error('Login error:', error)
-    
-    if (error.response) {
-      const message = error.response.data?.message || 'Login failed'
-      toast.error(message)
-    } else if (error.request) {
-      toast.error('Cannot connect to server')
-    } else {
-      toast.error(error.message)
-    }
+    console.error(error)
+    toast.error(error.response?.data?.message || 'Login failed')
   } finally {
     loading.value = false
   }

@@ -26,23 +26,9 @@
       </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <div class="bg-gradient-to-r from-green-400 to-green-500 rounded-lg shadow p-6 text-white">
-        <p class="text-sm opacity-90">Present Days</p>
-        <p class="text-3xl font-bold">{{ monthlyStats.present }}</p>
-      </div>
+
       
-      <div class="bg-gradient-to-r from-red-400 to-red-500 rounded-lg shadow p-6 text-white">
-        <p class="text-sm opacity-90">Absent Days</p>
-        <p class="text-3xl font-bold">{{ monthlyStats.absent }}</p>
-      </div>
-      
-      <div class="bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg shadow p-6 text-white">
-        <p class="text-sm opacity-90">Late Days</p>
-        <p class="text-3xl font-bold">{{ monthlyStats.late }}</p>
-      </div>
-    </div>
+
 
     <!-- Detailed Records Table -->
     <div class="bg-white rounded-lg shadow overflow-hidden">

@@ -17,9 +17,12 @@ const AdminUsers = () => import('@/components/admin/users.vue')
 const AdminFamilies = () => import('@/components/admin/Families.vue')
 const AdminStudents = () => import('@/components/admin/Students.vue')
 const AdminTeachers = () => import('@/components/admin/Teachers.vue')
+const AdminSettings = () => import('@/components/admin/Settings.vue')
+const AdminProfiles = () => import('@/components/admin/Profile.vue');
 const AdminClasses = () => import('@/components/admin/Classes.vue')
 const AdminReports = () => import('@/components/admin/Reports.vue')
 const TeacherAssignments = () => import('@/components/admin/TeacherAssignments.vue');
+const RolesPermissions = () => import('@/components/admin/RolesPermissions.vue')
 
 // Lazy load teacher components
 const TeacherLayout = () => import('@/components/teacher/TeacherLayout.vue')
@@ -72,13 +75,20 @@ const routes: RouteRecordRaw[] = [
       { path: 'teachers', name: 'admin.teachers', component: AdminTeachers, meta: { title: 'Teachers' } },
       { path: 'classes', name: 'admin.classes', component: AdminClasses, meta: { title: 'Classes' } },
       { path: 'reports', name: 'admin.reports', component: AdminReports, meta: { title: 'Reports' } },
+      { path: 'profiles', name: 'admin.profile', component: AdminProfiles, meta: { title: 'profile' } },
+      { path: 'settings', name: 'admin.settings', component: AdminSettings, meta: { title: 'Settings' } },
       {
         path: 'teacher-assignments',
         name: 'admin.teacher-assignments',
         component: TeacherAssignments,
         meta: { title: 'Teacher Assignments' }
+      },
+      { 
+        path: 'roles', 
+        name: 'admin.roles', 
+        component: RolesPermissions 
       }
-    ]
+          ]
   },
   
   // Teacher routes
@@ -135,69 +145,53 @@ const router = createRouter({
 })
 
 // FIXED: Navigation guard using the new pattern (return values instead of next())
-router.beforeEach((to, from) => {
-  const token = localStorage.getItem('access_token')
-  const userStr = localStorage.getItem('user')
-  
-  // Parse user if exists
-  let user = null
-  if (userStr) {
-    try {
-      user = JSON.parse(userStr)
-    } catch (e) {
-      console.error('Failed to parse user data')
-    }
-  }
-  
-  // Check if route requires authentication
-  if (to.meta.requiresAuth) {
-    if (!token || !user) {
-      // Redirect to Vue login page (not external URL)
-      return '/login'
-    }
-    
-    // Check role-based access
-    if (to.meta.role && user.role !== to.meta.role) {
-      // Redirect to appropriate dashboard based on role
-      if (user.role === 'admin') {
-        return '/admin/dashboard'
-      } else if (user.role === 'teacher') {
-        return '/teacher/dashboard'
-      } else if (user.role === 'student') {
-        return '/student/dashboard'
-      } else if (user.role === 'family') {
-        return '/family/dashboard'
-      } else {
-        return '/login'
+    router.beforeEach((to) => {
+      const token = localStorage.getItem('access_token')
+      const userStr = localStorage.getItem('user')
+      
+      // Parse user if exists
+      let user = null
+      if (userStr) {
+        try {
+          user = JSON.parse(userStr)
+        } catch (e) {
+          localStorage.removeItem('user')
+          return '/login'
+        }
       }
-    }
+      
+      // Check if route requires authentication
+      if (to.meta.requiresAuth && !token) {
+          return '/login'
+        }
+        
+        // Check role-based access
+      if (to.meta.role) {
+        if (!user || user.role !== to.meta.role) {
+          console.warn('Role mismatch:', user?.role, '-> required:', to.meta.role)
+
+          if(user && user.role){
+            return `/${user.role}/dashboard`
+          }
+
+          return '/login'
+        }
+      }
     
-    // Allow access
-    return true
-  }
   
   // If route is for guests only (login/register)
-  if (to.meta.guest) {
-    if (token && user) {
-      // User is already logged in, redirect to appropriate dashboard
-      if (user.role === 'admin') {
-        return '/admin/dashboard'
-      } else if (user.role === 'teacher') {
-        return '/teacher/dashboard'
-      } else if (user.role === 'student') {
-        return '/student/dashboard'
-      } else if (user.role === 'family') {
-        return '/family/dashboard'
-      } else {
-        return '/login'
+    if (to.meta.guest && token && user) {
+        const routes: Record<string, string> = {
+          admin: '/admin/dashboard',
+          teacher: '/teacher/dashboard',
+          student: '/student/dashboard',
+          family: '/family/dashboard'
+        }
+
+        return routes[user.role] || '/login'
       }
-    }
-    // Allow access to guest pages
-    return true
-  }
-  
-  // Allow access by default
-  return true
-})
+
+      return true
+    })
 
 export default router

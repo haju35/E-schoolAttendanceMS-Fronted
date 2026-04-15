@@ -7,20 +7,20 @@
 
     <!-- Loading Spinner -->
     <div v-if="loading" class="flex justify-center items-center h-32">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
     </div>
 
     <div v-else-if="profile">
       <!-- Profile Header -->
-      <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow p-6 mb-6 text-white">
+      <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow p-6 mb-6 text-white">
         <div class="flex items-center space-x-4">
           <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-            <span class="text-3xl text-blue-600 font-bold">{{ getInitials(profile.name) }}</span>
+            <span class="text-3xl text-indigo-600 font-bold">{{ getInitials(profile.name) }}</span>
           </div>
           <div>
             <h2 class="text-2xl font-bold">{{ profile.name || 'Family Member' }}</h2>
-            <p class="text-blue-100">{{ profile.email || 'No email' }}</p>
-            <p class="text-sm text-blue-200 mt-1">Parent/Guardian Account</p>
+            <p class="text-indigo-100">{{ profile.email || 'No email' }}</p>
+            <p class="text-sm text-indigo-200 mt-1">Parent/Guardian Account</p>
           </div>
         </div>
       </div>
@@ -33,7 +33,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-              <input type="text" v-model="form.name" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required disabled/>
+              <input type="text" v-model="form.name" class="w-full px-3 py-2 border rounded-md" required disabled/>
             </div>
             
             <div>
@@ -43,27 +43,27 @@
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input type="text" v-model="form.phone" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              <input type="text" v-model="form.phone" class="w-full px-3 py-2 border rounded-md" />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
-              <input type="text" v-model="form.address" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              <input type="text" v-model="form.address" class="w-full px-3 py-2 border rounded-md" disabled/>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
-              <input type="text" v-model="form.occupation" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              <input type="text" v-model="form.occupation" class="w-full px-3 py-2 border rounded-md" />
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-              <input type="text" v-model="form.emergency_contact" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+              <input type="text" v-model="form.emergency_contact" class="w-full px-3 py-2 border rounded-md" />
             </div>
           </div>
 
           <div class="mt-4 flex space-x-3">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200">
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
               Update Profile
             </button>
           </div>
@@ -77,12 +77,12 @@
           No children linked to your account.
         </div>
         <div v-else class="space-y-3">
-          <div v-for="student in profile.students" :key="student.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+          <div v-for="student in profile.students" :key="student.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
             <div>
               <p class="font-medium text-gray-800">{{ student.name }}</p>
               <p class="text-sm text-gray-500">{{ student.class_name }} - {{ student.section_name }} | Roll No: {{ student.roll_number }}</p>
             </div>
-            <router-link :to="`/family/attendance/${student.id}`" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+            <router-link :to="`/family/attendance/${student.id}`" class="text-indigo-600 hover:text-indigo-800 text-sm">
               View Attendance →
             </router-link>
           </div>
@@ -97,20 +97,20 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-              <input type="password" v-model="passwords.current" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+              <input type="password" v-model="passwords.current" class="w-full px-3 py-2 border rounded-md" required />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-              <input type="password" v-model="passwords.new" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+              <input type="password" v-model="passwords.new" class="w-full px-3 py-2 border rounded-md" required />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-              <input type="password" v-model="passwords.confirm" class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required />
+              <input type="password" v-model="passwords.confirm" class="w-full px-3 py-2 border rounded-md" required />
             </div>
           </div>
 
           <div class="mt-4">
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200">
+            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
               Change Password
             </button>
           </div>
@@ -118,9 +118,7 @@
       </div>
 
       <!-- Success/Error Messages -->
-      <div v-if="message.text" 
-           :class="message.type === 'success' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'" 
-           class="mt-4 p-3 rounded border">
+      <div v-if="message.text" :class="message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="mt-4 p-3 rounded">
         {{ message.text }}
       </div>
     </div>
@@ -128,9 +126,7 @@
     <!-- Error State -->
     <div v-else class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
       <p class="text-red-600">Failed to load profile data. Please try again.</p>
-      <button @click="fetchProfile" class="mt-3 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200">
-        Retry
-      </button>
+      <button @click="fetchProfile" class="mt-3 bg-indigo-600 text-white px-4 py-2 rounded">Retry</button>
     </div>
   </div>
 </template>
@@ -231,4 +227,3 @@ onMounted(() => {
   fetchProfile()
 })
 </script>
-

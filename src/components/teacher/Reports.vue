@@ -62,13 +62,10 @@
         <button @click="generateReport" class="btn-primary" :disabled="loading">
           {{ loading ? 'Generating...' : 'Generate Report' }}
         </button>
-        <button @click="exportReport('pdf')" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" :disabled="!reportData">
-          Export PDF
+        <button @click="exportToPDF" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition" :disabled="!reportData">
+          Download PDF
         </button>
-        <button @click="exportReport('excel')" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" :disabled="!reportData">
-          Export Excel
-        </button>
-        <button @click="printReport" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" :disabled="!reportData">
+        <button @click="printReport" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition" :disabled="!reportData">
           Print
         </button>
       </div>
@@ -85,10 +82,6 @@
         <p class="text-2xl font-bold text-green-600">{{ reportSummary.avg_attendance.toFixed(2) }}%</p>
       </div>
       <div class="bg-white rounded-lg shadow p-4">
-        <p class="text-sm text-gray-500">Most Absent Student</p>
-        <p class="text-lg font-semibold text-red-600">{{ reportSummary.most_absent_name }}</p>
-      </div>
-      <div class="bg-white rounded-lg shadow p-4">
         <p class="text-sm text-gray-500">Perfect Attendance</p>
         <p class="text-2xl font-bold text-blue-600">{{ reportSummary.perfect_attendance_count }}</p>
       </div>
@@ -97,7 +90,7 @@
     <!-- Report Table -->
     <div v-if="reportData" class="bg-white rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-full divide-y divide-gray-200" id="report-table">
           <thead class="bg-gray-50">
             <tr>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student Name</th>
@@ -136,7 +129,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import teacherApi from '../../services/teacherApi'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
+import { useToast } from 'vue-toastification'
 
+const toast = useToast()
 const loading = ref(false)
 const classes = ref([])
 const reportData = ref(null)
@@ -161,7 +158,7 @@ const fetchClasses = async () => {
 
 const generateReport = async () => {
   if (!filters.value.class_room_id || !filters.value.section_id) {
-    alert('Please select class and section')
+    toast.error('Please select class and section')
     return
   }
 
@@ -184,20 +181,288 @@ const generateReport = async () => {
       most_absent_name: students.sort((a, b) => b.absent - a.absent)[0]?.name || '-',
       perfect_attendance_count: students.filter(s => s.percentage === 100).length
     }
+    toast.success('Report generated successfully!')
   } catch (error) {
     console.error('Error generating report:', error.response?.data || error)
-    alert('Failed to generate report. Make sure your dates and filters are correct')
+    toast.error('Failed to generate report. Make sure your dates and filters are correct')
   } finally {
     loading.value = false
   }
 }
 
-const exportReport = async (format) => {
-  // Optional: implement your export logic
+// PDF Export Function
+const exportToPDF = () => {
+  if (!reportData.value || reportData.value.length === 0) {
+    toast.error('No data to export. Please generate report first.')
+    return
+  }
+
+  try {
+    // Create PDF document
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    })
+
+    const currentDate = new Date()
+    
+    // Add Header
+    doc.setFontSize(18)
+    doc.setTextColor(79, 70, 229)
+    doc.text('E-School Attendance System', 14, 15)
+    
+    doc.setFontSize(16)
+    doc.setTextColor(0, 0, 0)
+    doc.text('Attendance Report', 14, 30)
+    
+    // Add Report Details
+    doc.setFontSize(10)
+    doc.setTextColor(100, 100, 100)
+    
+    let yPosition = 40
+    
+    doc.text(`Class: ${getSelectedClass()}`, 14, yPosition)
+    doc.text(`Section: ${getSelectedSection()}`, 80, yPosition)
+    doc.text(`Report Type: ${filters.value.report_type.toUpperCase()}`, 140, yPosition)
+    doc.text(`Generated: ${formatDate(currentDate)}`, 200, yPosition)
+    
+    yPosition += 7
+    doc.text(`Period: ${formatDate(filters.value.start_date)} to ${formatDate(filters.value.end_date)}`, 14, yPosition)
+    
+    yPosition += 10
+    
+    // Add Summary
+    doc.setFontSize(12)
+    doc.setTextColor(0, 0, 0)
+    doc.text('Summary', 14, yPosition)
+    
+    yPosition += 7
+    doc.setFontSize(10)
+    doc.text(`Total Students: ${reportSummary.value.total_students}`, 14, yPosition)
+    doc.text(`Average Attendance: ${reportSummary.value.avg_attendance.toFixed(2)}%`, 80, yPosition)
+    doc.text(`Perfect Attendance: ${reportSummary.value.perfect_attendance_count} students`, 150, yPosition)
+    
+    yPosition += 10
+    
+    // Prepare table data
+    const tableData = reportData.value.map(student => [
+      student.name,
+      student.roll_number,
+      student.present,
+      student.absent,
+      student.late,
+      `${student.percentage}%`
+    ])
+
+    // Add table using autoTable
+    autoTable(doc, {
+      startY: yPosition,
+      head: [['Student Name', 'Roll No', 'Present', 'Absent', 'Late', 'Attendance %']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [79, 70, 229],
+        textColor: [255, 255, 255],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 9,
+        cellPadding: 3
+      },
+      columnStyles: {
+        0: { cellWidth: 45, halign: 'left' },
+        1: { cellWidth: 20, halign: 'center' },
+        2: { cellWidth: 20, halign: 'center' },
+        3: { cellWidth: 20, halign: 'center' },
+        4: { cellWidth: 20, halign: 'center' },
+        5: { cellWidth: 25, halign: 'center' }
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      },
+      margin: { left: 14, right: 14 },
+      didDrawPage: (data) => {
+        const pageCount = doc.internal.getNumberOfPages()
+        doc.setFontSize(8)
+        doc.setTextColor(150, 150, 150)
+        doc.text(
+          `Page ${data.pageNumber} of ${pageCount}`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 10,
+          { align: 'center' }
+        )
+      }
+    })
+
+    // Add signature (if space available)
+    const finalY = doc.lastAutoTable.finalY + 10
+    if (finalY < doc.internal.pageSize.getHeight() - 20) {
+      doc.setFontSize(10)
+      doc.setTextColor(0, 0, 0)
+      doc.text('_________________________', 40, finalY)
+      doc.text('_________________________', 140, finalY)
+      doc.text('Teacher\'s Signature', 45, finalY + 5)
+      doc.text('Principal\'s Signature', 145, finalY + 5)
+    }
+    
+    // Footer
+    doc.setFontSize(8)
+    doc.setTextColor(150, 150, 150)
+    doc.text('This is a system generated report.', 14, doc.internal.pageSize.getHeight() - 20)
+
+    // Save PDF
+    const fileName = `Attendance_Report_${getSelectedClass()}_${getSelectedSection()}_${formatDateForFile(currentDate)}.pdf`
+    doc.save(fileName)
+    
+    toast.success('PDF downloaded successfully!')
+    
+  } catch (error) {
+    console.error('Error generating PDF:', error)
+    toast.error('Failed to generate PDF. Please try again.')
+  }
 }
 
+// Print Report
 const printReport = () => {
-  window.print()
+  if (!reportData.value || reportData.value.length === 0) {
+    toast.error('No data to print. Please generate report first.')
+    return
+  }
+
+  const printWindow = window.open('', '_blank')
+  
+  const tableHtml = document.getElementById('report-table').outerHTML
+  
+  const printContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Attendance Report</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+        }
+        h1 {
+          color: #4f46e5;
+          text-align: center;
+        }
+        h2 {
+          text-align: center;
+        }
+        .report-header {
+          margin-bottom: 20px;
+          padding: 10px;
+          background-color: #f5f5f5;
+        }
+        .summary {
+          margin-bottom: 20px;
+          padding: 10px;
+          background-color: #e8f4e8;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+        }
+        th, td {
+          border: 1px solid #ddd;
+          padding: 10px;
+          text-align: left;
+        }
+        th {
+          background-color: #4f46e5;
+          color: white;
+        }
+        tr:nth-child(even) {
+          background-color: #f9f9f9;
+        }
+        .footer {
+          margin-top: 30px;
+          text-align: center;
+          font-size: 12px;
+          color: #666;
+        }
+        @media print {
+          button {
+            display: none;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <h1>E-School Attendance System</h1>
+      <h2>Attendance Report</h2>
+      
+      <div class="report-header">
+        <p><strong>Class:</strong> ${getSelectedClass()}</p>
+        <p><strong>Section:</strong> ${getSelectedSection()}</p>
+        <p><strong>Report Type:</strong> ${filters.value.report_type.toUpperCase()}</p>
+        <p><strong>Period:</strong> ${formatDate(filters.value.start_date)} to ${formatDate(filters.value.end_date)}</p>
+        <p><strong>Generated on:</strong> ${formatDate(new Date())}</p>
+      </div>
+      
+      <div class="summary">
+        <h3>Summary</h3>
+        <p><strong>Total Students:</strong> ${reportSummary.value.total_students}</p>
+        <p><strong>Average Attendance:</strong> ${reportSummary.value.avg_attendance.toFixed(2)}%</p>
+        <p><strong>Perfect Attendance:</strong> ${reportSummary.value.perfect_attendance_count} students</p>
+      </div>
+      
+      ${tableHtml}
+      
+      <div class="footer">
+        <p>*** This is a system generated report ***</p>
+        <p>_________________________</p>
+        <p>Teacher's Signature</p>
+      </div>
+    </body>
+    </html>
+  `
+  
+  printWindow.document.write(printContent)
+  printWindow.document.close()
+  
+  printWindow.onload = () => {
+    printWindow.print()
+    printWindow.close()
+  }
+}
+
+// Helper Functions
+const getSelectedClass = () => {
+  const classItem = classes.value.find(c => c.class.id === filters.value.class_room_id)
+  return classItem ? classItem.class.name : 'N/A'
+}
+
+const getSelectedSection = () => {
+  const classItem = classes.value.find(c => c.class.id === filters.value.class_room_id)
+  if (classItem && filters.value.section_id) {
+    const section = classItem.sections.find(s => s.section.id === filters.value.section_id)
+    return section ? section.section.name : 'N/A'
+  }
+  return 'N/A'
+}
+
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  const d = new Date(date)
+  return d.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  })
+}
+
+const formatDateForFile = (date) => {
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 onMounted(() => {
@@ -211,3 +476,36 @@ onMounted(() => {
   filters.value.start_date = weekAgo.toISOString().split('T')[0]
 })
 </script>
+
+<style scoped>
+.input-field {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.input-field:focus {
+  outline: none;
+  ring: 2px solid #4f46e5;
+  border-color: #4f46e5;
+}
+
+.btn-primary {
+  background-color: #4f46e5;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #4338ca;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

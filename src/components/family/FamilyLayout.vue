@@ -11,7 +11,6 @@
               </svg>
             </button>
             <span class="text-xl font-bold text-indigo-600">E-School Attendance</span>
-            <span class="ml-2 text-sm text-gray-500 hidden md:block">family Portal</span>
           </div>
           
           <div class="flex items-center space-x-4">

@@ -13,7 +13,6 @@
               </svg>
             </button>
             <span class="text-xl font-bold text-indigo-600">E-School Attendance</span>
-            <span class="ml-2 text-sm text-gray-500 hidden md:block">Student Portal</span>
           </div>
 
           <!-- Profile menu -->
