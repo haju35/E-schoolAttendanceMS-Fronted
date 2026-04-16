@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Top Navigation -->
-    <nav class="bg-white shadow-sm fixed w-full z-20 top-0">
+    <nav class="bg-white dark:bg-gray-800 shadow-sm fixed w-full z-20 top-0">
       <div class="px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
@@ -14,7 +14,18 @@
           </div>
           
           <div class="flex items-center space-x-4">
-            <ThemeToggle />
+            <!-- Dark Mode Toggle Switch -->
+            <button
+              @click="toggleDark"
+              class="relative w-14 h-7 flex items-center rounded-full p-1 transition-colors duration-300"
+              :class="isDark ? 'bg-indigo-600' : 'bg-gray-300'"
+            >
+              <span
+                class="w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300"
+                :class="isDark ? 'translate-x-7' : 'translate-x-0'"
+              ></span>
+            </button>
+            
             <div class="relative">
               <button @click="toggleProfileMenu" class="flex items-center space-x-2 focus:outline-none">
                 <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -26,15 +37,15 @@
                 </svg>
               </button>
               
-              <div v-if="showProfileMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                <router-link to="/admin/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="showProfileMenu = false">
+              <div v-if="showProfileMenu" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-10">
+                <router-link to="/admin/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:bg-gray-700" @click="showProfileMenu = false">
                   My Profile
                 </router-link>
-                <router-link to="/admin/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="showProfileMenu = false">
+                <!--<router-link to="/admin/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="showProfileMenu = false">
                   Settings
-                </router-link>
+                </router-link>-->
                 <hr class="my-1">
-                <a href="#" @click="handleLogout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
+                <a href="#" @click="handleLogout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:bg-gray-700">Logout</a>
               </div>
             </div>
           </div>
@@ -43,18 +54,18 @@
     </nav>
 
     <!-- Sidebar -->
-    <div :class="['fixed inset-y-0 left-0 z-10 w-64 bg-white shadow-lg mt-16 transform transition-transform duration-200 ease-in-out', sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
+    <div :class="['fixed inset-y-0 left-0 z-10 w-64 bg-white dark:bg-gray-800  shadow-lg mt-16 transform transition-transform duration-200 ease-in-out', sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
       <div class="h-full overflow-y-auto">
         <div class="px-4 py-6 border-b">
           <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
+            <!--<div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
               <span class="text-white text-lg font-bold">{{ userInitial }}</span>
-            </div>
-            <div>
+            </div>-->
+            <!--<div>
               <p class="font-semibold text-gray-800">{{ adminName }}</p>
               <p class="text-sm text-gray-500">Administrator</p>
               <p class="text-xs text-gray-400">Role: Admin</p>
-            </div>
+            </div>-->
           </div>
         </div>
         
@@ -174,6 +185,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useToast } from 'vue-toastification'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const router = useRouter()
 const route = useRoute()
@@ -183,6 +195,7 @@ const toast = useToast()
 const sidebarOpen = ref(false)
 const showProfileMenu = ref(false)
 const adminData = ref<any>(null)
+const { isDark, toggleDark } = useDarkMode()
 
 const adminName = computed(() => user.value?.name || 'Admin')
 const userInitial = computed(() => adminName.value.charAt(0).toUpperCase())

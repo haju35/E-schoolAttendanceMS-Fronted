@@ -43,13 +43,8 @@
       <div class="h-full overflow-y-auto">
         <div class="px-4 py-6 border-b">
           <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
-              <span class="text-white text-lg font-bold">{{ parentInitials }}</span>
-            </div>
-            <div>
-              <p class="font-semibold text-gray-800">{{ parentName }}</p>
-              <p class="text-sm text-gray-500">family</p>
-            </div>
+            
+            
           </div>
         </div>
         

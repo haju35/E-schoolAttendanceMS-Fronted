@@ -118,21 +118,9 @@
               </div>
             </div>
             
-            <!-- Action Buttons -->
-            <div class="flex space-x-3">
-              <button 
-                @click="viewDetails(child)" 
-                class="flex-1 bg-indigo-600 text-white px-3 py-2 rounded text-sm hover:bg-indigo-700 transition-colors"
-              >
-                View Details
-              </button>
-              <button 
-                @click="submitLeave(child)" 
-                class="flex-1 bg-yellow-600 text-white px-3 py-2 rounded text-sm hover:bg-yellow-700 transition-colors"
-              >
-                Submit Leave
-              </button>
-            </div>
+           
+            
+
           </div>
         </div>
       </div>

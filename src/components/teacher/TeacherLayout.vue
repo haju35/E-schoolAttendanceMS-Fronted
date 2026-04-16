@@ -46,14 +46,7 @@
       <div class="h-full overflow-y-auto">
         <div class="px-4 py-6 border-b">
           <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
-              <span class="text-white text-lg font-bold">{{ teacherInitials }}</span>
-            </div>
-            <div>
-              <p class="font-semibold text-gray-800">{{ teacherName }}</p>
-              <p class="text-sm text-gray-500">{{ teacherQualification }}</p>
-              <p class="text-xs text-gray-400">ID: {{ employeeId }}</p>
-            </div>
+            
           </div>
         </div>
         
@@ -174,50 +167,30 @@ const fetchTeacherData = async () => {
 
 // NEW: Navigate to students with class parameters
 const navigateToStudents = async () => {
-  // If we already have teacher data with class info
-  if (teacherData.value?.class) {
-    const classId = teacherData.value.class.id
-    const sectionId = teacherData.value.class.section_id
-    
-    if (classId && sectionId) {
-      router.push({
-        path: `/teacher/students/${classId}`,
-        query: { section_id: sectionId.toString() }
-      })
-      return
-    }
-  }
-  
-  // If teacher data is not loaded yet, fetch it first
-  if (!teacherData.value) {
-    try {
-      const response = await teacherApi.getProfile()
-      if (response.data.success && response.data.data.class) {
-        const classId = response.data.data.class.id
-        const sectionId = response.data.data.class.section_id
-        
-        if (classId && sectionId) {
-          router.push({
-            path: `/teacher/students/${classId}`,
-            query: { section_id: sectionId.toString() }
-          })
-        } else {
-          toast.warning('You are not assigned to any class yet')
-          router.push('/teacher/students')
-        }
+  try {
+    const response = await teacherApi.getClasses() // or api.get('/teacher/classes')
+
+    if (response.data.success) {
+      const classes = response.data.data || []
+
+      if (classes.length > 0 && classes[0].sections.length > 0) {
+        const firstClass = classes[0]
+        const firstSection = firstClass.sections[0]
+
+        const classId = firstClass.class.id
+        const sectionId = firstSection.section.id
+
+        router.push({
+          path: `/teacher/students/${classId}`,
+          query: { section_id: sectionId.toString() }
+        })
       } else {
-        toast.warning('You are not assigned to any class yet')
-        router.push('/teacher/students')
+        toast.warning('No classes assigned yet')
       }
-    } catch (error) {
-      console.error('Error fetching teacher class:', error)
-      toast.error('Failed to load class information')
-      router.push('/teacher/students')
     }
-  } else {
-    // Teacher data loaded but no class
-    toast.warning('You are not assigned to any class yet')
-    router.push('/teacher/students')
+  } catch (error) {
+    console.error(error)
+    toast.error('Failed to load classes')
   }
 }
 

@@ -19,7 +19,7 @@ export const familyApi = {
     // Profile
     getProfile: () => api.get('/family/profile'),
     updateProfile: (data: any) => api.put('/family/profile', data),
-    changePassword: (data: any) => api.post('/family/change-password', data),
+    changePassword: (data: any) => api.put('/family/change-password', data),
     
     // Leave Requests
     submitLeave: (data: any) => api.post('/family/leave-requests', data),

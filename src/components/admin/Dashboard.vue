@@ -22,7 +22,7 @@
     <div v-else>
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
-        <div class="bg-white rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
           <div class="flex items-center">
             <div class="p-2 md:p-3 bg-blue-100 rounded-full">
               <svg class="w-6 h-6 md:w-8 md:h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,14 +30,14 @@
               </svg>
             </div>
             <div class="ml-3 md:ml-4">
-              <p class="text-xs md:text-sm text-gray-500">Total Students</p>
-              <p class="text-xl md:text-2xl font-bold text-gray-900">{{ stats.total_students || 0 }}</p>
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-300">Total Students</p>
+              <p class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total_students || 0 }}</p>
               <p class="text-xs text-green-600">Active: {{ stats.active_students || 0 }}</p>
             </div>
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
           <div class="flex items-center">
             <div class="p-2 md:p-3 bg-green-100 rounded-full">
               <svg class="w-6 h-6 md:w-8 md:h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,14 +45,14 @@
               </svg>
             </div>
             <div class="ml-3 md:ml-4">
-              <p class="text-xs md:text-sm text-gray-500">Total Teachers</p>
-              <p class="text-xl md:text-2xl font-bold text-gray-900">{{ stats.total_teachers || 0 }}</p>
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-300">Total Teachers</p>
+              <p class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total_teachers || 0 }}</p>
               <p class="text-xs text-green-600">Active: {{ stats.active_teachers || 0 }}</p>
             </div>
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
           <div class="flex items-center">
             <div class="p-2 md:p-3 bg-purple-100 rounded-full">
               <svg class="w-6 h-6 md:w-8 md:h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,13 +60,13 @@
               </svg>
             </div>
             <div class="ml-3 md:ml-4">
-              <p class="text-xs md:text-sm text-gray-500">Total Families</p>
-              <p class="text-xl md:text-2xl font-bold text-gray-900">{{ stats.total_families || 0 }}</p>
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-300">Total Families</p>
+              <p class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{{ stats.total_families || 0 }}</p>
             </div>
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 hover:shadow-lg transition">
           <div class="flex items-center">
             <div class="p-2 md:p-3 bg-yellow-100 rounded-full">
               <svg class="w-6 h-6 md:w-8 md:h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,9 +74,9 @@
               </svg>
             </div>
             <div class="ml-3 md:ml-4">
-              <p class="text-xs md:text-sm text-gray-500">Today's Attendance</p>
-              <p class="text-xl md:text-2xl font-bold text-gray-900">{{ attendancePercentage }}%</p>
-              <p class="text-xs text-gray-500">{{ stats.present_today || 0 }} / {{ stats.total_students || 0 }}</p>
+              <p class="text-xs md:text-sm text-gray-500 dark:text-gray-300">Today's Attendance</p>
+              <p class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{{ attendancePercentage }}%</p>
+              <p class="text-xs text-gray-500 dark:text-gray-300">{{ stats.present_today || 0 }} / {{ stats.total_students || 0 }}</p>
             </div>
           </div>
         </div>
@@ -84,8 +84,8 @@
 
       <!-- Quick Actions & Attendance Summary -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow p-4 md:p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
           <div class="grid grid-cols-2 gap-3 md:gap-4">
             <button @click="$router.push('/admin/students')" class="bg-blue-50 text-blue-600 p-3 md:p-4 rounded-lg hover:bg-blue-100 transition text-center">
               <svg class="w-5 h-5 md:w-6 md:h-6 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,8 +117,8 @@
           </div>
         </div>
         
-        <div class="bg-white rounded-lg shadow p-4 md:p-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-4">Today's Attendance Summary</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Today's Attendance Summary</h3>
           <div v-if="stats.total_students > 0" class="space-y-4">
             <div>
               <div class="flex justify-between text-sm mb-1">
@@ -148,7 +148,7 @@
               </div>
             </div>
           </div>
-          <div v-else class="text-center py-8 text-gray-500">
+          <div v-else class="text-center py-8 text-gray-500 dark:text-gray-300">
             No attendance data available
           </div>
         </div>

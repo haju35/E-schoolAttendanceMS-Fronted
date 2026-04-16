@@ -13,11 +13,10 @@ const AdminLayout = () => import('@/components/admin/AdminLayout.vue')
 const AdminAcademicYears = () => import('@/components/admin/AcademicYears.vue')
 const AdminSections = () => import('@/components/admin/Sections.vue')
 const AdminSubjects = () => import('@/components/admin/Subjects.vue')
-const AdminUsers = () => import('@/components/admin/users.vue')
+const AdminUsers = () => import('@/components/admin/Users.vue')
 const AdminFamilies = () => import('@/components/admin/Families.vue')
 const AdminStudents = () => import('@/components/admin/Students.vue')
 const AdminTeachers = () => import('@/components/admin/Teachers.vue')
-const AdminSettings = () => import('@/components/admin/Settings.vue')
 const AdminProfiles = () => import('@/components/admin/Profile.vue');
 const AdminClasses = () => import('@/components/admin/Classes.vue')
 const AdminReports = () => import('@/components/admin/Reports.vue')
@@ -66,7 +65,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '', redirect: '/admin/dashboard' },
       { path: 'dashboard', name: 'admin.dashboard', component: AdminDashboard, meta: { title: 'Dashboard' } },
-      { path: 'users', name: 'admin.users', component: AdminUsers, meta: { title: 'User Management' } },
+      { path: 'users', name: 'admin.Users', component: AdminUsers, meta: { title: 'User Management' } },
       { path: 'academic-years', name: 'admin.Academic-years', component: AdminAcademicYears, meta: { title: 'AcademicYears' } },
       { path: 'sections', name: 'admin.sections', component: AdminSections, meta: { title: 'sections' } },
       { path: 'subjects', name: 'admin.subjects', component: AdminSubjects, meta: { title: 'subjects' } },
@@ -76,7 +75,6 @@ const routes: RouteRecordRaw[] = [
       { path: 'classes', name: 'admin.classes', component: AdminClasses, meta: { title: 'Classes' } },
       { path: 'reports', name: 'admin.reports', component: AdminReports, meta: { title: 'Reports' } },
       { path: 'profiles', name: 'admin.profile', component: AdminProfiles, meta: { title: 'profile' } },
-      { path: 'settings', name: 'admin.settings', component: AdminSettings, meta: { title: 'Settings' } },
       {
         path: 'teacher-assignments',
         name: 'admin.teacher-assignments',

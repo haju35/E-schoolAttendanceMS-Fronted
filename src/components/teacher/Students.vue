@@ -52,6 +52,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import teacherApi from '../../services/teacherApi'
 import { useToast } from 'vue-toastification'
+import { watch } from 'vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -104,4 +105,11 @@ const viewStudentDetails = (id: number) => {
 }
 
 onMounted(() => fetchStudents())
+
+watch(
+  () => [route.params.id, route.query.section_id],
+  () => {
+    fetchStudents()
+  }
+)
 </script>

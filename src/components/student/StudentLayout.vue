@@ -58,14 +58,8 @@
       <div class="h-full overflow-y-auto">
         <div class="px-4 py-6 border-b">
           <div class="flex items-start space-x-3">
-            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
-              <span class="text-white text-lg font-bold">{{ studentInitials }}</span>
-            </div>
-            <div class="min-w-0">
-              <p class="font-semibold text-gray-800 truncate">{{ studentName }}</p>
-              <p class="text-sm text-gray-500 break-words">{{ studentClass }}</p>
-              <p class="text-xs text-gray-400">Roll No: {{ rollNumber }}</p>
-            </div>
+          
+            
           </div>
         </div>
 
