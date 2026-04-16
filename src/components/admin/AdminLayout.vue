@@ -142,6 +142,18 @@
             Teacher Assignments
           </router-link>
 
+                    <!-- Add this after Teacher Assignments or wherever you want -->
+          <router-link 
+            to="/admin/class-teachers" 
+            class="group flex items-center px-2 py-2 text-base font-medium rounded-md" 
+            :class="[$route.path === '/admin/class-teachers' ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700']"
+          >
+            <svg class="mr-3 h-6 w-6" :class="[$route.path === '/admin/class-teachers' ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500']" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            Class Teachers
+          </router-link>
+
           <!-- Reports -->
           <router-link to="/admin/reports" class="group flex items-center px-2 py-2 text-base font-medium rounded-md" :class="[$route.path === '/admin/reports' ? 'bg-indigo-100 text-indigo-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900']">
             <svg class="mr-3 h-6 w-6" :class="[$route.path === '/admin/reports' ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500']" fill="none" stroke="currentColor" viewBox="0 0 24 24">

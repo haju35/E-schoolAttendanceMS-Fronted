@@ -21,6 +21,7 @@ const AdminProfiles = () => import('@/components/admin/Profile.vue');
 const AdminClasses = () => import('@/components/admin/Classes.vue')
 const AdminReports = () => import('@/components/admin/Reports.vue')
 const TeacherAssignments = () => import('@/components/admin/TeacherAssignments.vue');
+const ClassTeacherAssignment = () => import('@/components/admin/ClassTeacherAssignment.vue')
 const RolesPermissions = () => import('@/components/admin/RolesPermissions.vue')
 
 // Lazy load teacher components
@@ -32,6 +33,7 @@ const TeacherClasses = () => import('@/components/teacher/Classes.vue')
 const TeacherStudents = () => import('@/components/teacher/Students.vue')
 const TeacherReports = () => import('@/components/teacher/Reports.vue')
 const TeacherProfile = () => import('@/components/teacher/Profile.vue')
+const ClassTeacherDashboard = () => import('@/components/teacher/ClassTeacherDashboard.vue')
 
 // Lazy load student components
 const StudentLayout = () => import('@/components/student/StudentLayout.vue')
@@ -81,6 +83,13 @@ const routes: RouteRecordRaw[] = [
         component: TeacherAssignments,
         meta: { title: 'Teacher Assignments' }
       },
+
+      { 
+        path: 'class-teachers', 
+        name: 'admin.class-teachers', 
+        component: ClassTeacherAssignment, 
+        meta: { title: 'Class Teacher Management' } 
+      },
       { 
         path: 'roles', 
         name: 'admin.roles', 
@@ -102,7 +111,13 @@ const routes: RouteRecordRaw[] = [
       { path: 'classes', name: 'teacher.classes', component: TeacherClasses, meta: { title: 'My Classes' } },
       { path: 'students/:id?', name: 'teacher.students', component: TeacherStudents, meta: { title: 'My Students' } },
       { path: 'reports', name: 'teacher.reports', component: TeacherReports, meta: { title: 'Reports' } },
-      { path: 'profile', name: 'teacher.profile', component: TeacherProfile, meta: { title: 'Profile' } }
+      { path: 'profile', name: 'teacher.profile', component: TeacherProfile, meta: { title: 'Profile' } },
+      { 
+      path: 'homeroom', 
+      name: 'teacher.homeroom', 
+      component: ClassTeacherDashboard, 
+      meta: { title: 'Homeroom Dashboard' } 
+    },
     ]
   },
   

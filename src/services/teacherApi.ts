@@ -34,6 +34,16 @@ export const teacherApi = {
     
     // Student Details
     getStudentDetails: (studentId: number) => api.get(`/teacher/students/${studentId}`),
+
+    getClassTeacherDashboard: () => api.get('/teacher/class-teacher/dashboard'),
+
+    markClassAttendance: (data: { date: string; attendance: Array<{ student_id: number; status: string; remarks?: string }> }) => api.post('/teacher/attendance/class', data),
+
+    getClassAttendance: (date: string) => api.get(`/teacher/class-attendance?date=${date}`),
+
+    getStudentClassAttendance: (studentId: number) => api.get(`/teacher/class-attendance/student/${studentId}`),
+
+    checkClassTeacherStatus: () => api.get('/teacher/class-teacher/status'),
 };
 
 export default teacherApi;
