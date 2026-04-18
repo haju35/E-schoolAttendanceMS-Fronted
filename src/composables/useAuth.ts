@@ -7,42 +7,46 @@ import type { LoginCredentials, RegisterData, ForgotPasswordData, ResetPasswordD
 
 const user = ref<User | null>(null)          
 const token = ref<string | null>(localStorage.getItem('access_token'))    
-const loading = ref(false)                    
+const loading = ref(false)   
+const isClassTeacher = ref<boolean>(localStorage.getItem('is_class_teacher') === 'true')
 
 // Set axios header if token exists
 if (token.value) {
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`}
+  axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+}
 
 export function useAuth() {
   const router = useRouter()
   const toast = useToast()
 
-  const isAuthenticated = computed(() => !!token.value)  // Auth status
+  const isAuthenticated = computed(() => !!token.value)
 
-  
   const login = async (credentials: LoginCredentials) => {         
     loading.value = true 
     try {
       const response = await api.post<ApiResponse<LoginResponse>>('/auth/login', credentials)
       
       if (response.data.success) {
-        const { access_token, user: userData } = response.data
+        const { access_token, user: userData, is_class_teacher: classTeacherStatus } = response.data
 
         localStorage.removeItem('access_token')
         localStorage.removeItem('user')
+        localStorage.removeItem('is_class_teacher')
         
         token.value = access_token
         user.value = userData
+        isClassTeacher.value = classTeacherStatus || false
         
         localStorage.setItem('access_token', access_token)
         localStorage.setItem('user', JSON.stringify(userData))
+        localStorage.setItem('is_class_teacher', String(classTeacherStatus || false))
         
         axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
         
         toast.success('Login successful!')
         
-        // Redirect based on role
-        redirectByRole(userData.role)
+        // Redirect based on role and class teacher status
+        redirectByRole(userData.role, classTeacherStatus)
         
         return true
       }
@@ -133,8 +137,10 @@ export function useAuth() {
     } finally {
       token.value = null
       user.value = null
+      isClassTeacher.value = false
       localStorage.removeItem('access_token')
       localStorage.removeItem('user')
+      localStorage.removeItem('is_class_teacher')
       delete axios.defaults.headers.common['Authorization']
       router.push('/login')
     }
@@ -156,22 +162,30 @@ export function useAuth() {
     }
   }
   
-  const redirectByRole = (role: string) => {
-   const routes: Record<string, string> = {
-    admin: '/admin/dashboard',
-    teacher: '/teacher/dashboard',
-    student: '/student/dashboard',
-    family: '/family/dashboard'
-   }
+  // SINGLE redirectByRole function (fixed)
+  const redirectByRole = (role: string, isClassTeacherStatus?: boolean) => {
+    // If teacher and is class teacher, go to homeroom dashboard
+    if (role === 'teacher' && isClassTeacherStatus) {
+      router.push('/homeroom/dashboard')
+      return
+    }
+    
+    const routes: Record<string, string> = {
+      admin: '/admin/dashboard',
+      teacher: '/teacher/dashboard',
+      student: '/student/dashboard',
+      family: '/family/dashboard'
+    }
 
-   router.push(routes[role] || '/login')
-}
+    router.push(routes[role] || '/login')
+  }
   
   return { 
     user, 
     token, 
     loading, 
     isAuthenticated, 
+    isClassTeacher,
     login, 
     register,
     forgotPassword,

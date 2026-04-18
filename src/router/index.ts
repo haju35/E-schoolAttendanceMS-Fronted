@@ -28,12 +28,14 @@ const RolesPermissions = () => import('@/components/admin/RolesPermissions.vue')
 const TeacherLayout = () => import('@/components/teacher/TeacherLayout.vue')
 const TeacherDashboard = () => import('@/components/teacher/Dashboard.vue')
 const TeacherAttendance = () => import('@/components/teacher/Attendance.vue')
-const TeacherViewAttendance = () => import('@/components/teacher/ViewAttendanceTeacher.vue')
+const ViewAttendanceSubject = () => import('@/components/teacher/ViewAttendanceSubject.vue')
 const TeacherClasses = () => import('@/components/teacher/Classes.vue')
 const TeacherStudents = () => import('@/components/teacher/Students.vue')
 const TeacherReports = () => import('@/components/teacher/Reports.vue')
 const TeacherProfile = () => import('@/components/teacher/Profile.vue')
-const ClassTeacherDashboard = () => import('@/components/teacher/ClassTeacherDashboard.vue')
+// Make sure these imports exist
+const HomeroomLayout = () => import('@/components/teacher/HomeroomLayout.vue')
+const HomeroomDashboard = () => import('@/components/teacher/HomeroomDashboard.vue')
 
 // Lazy load student components
 const StudentLayout = () => import('@/components/student/StudentLayout.vue')
@@ -85,15 +87,16 @@ const routes: RouteRecordRaw[] = [
       },
 
       { 
-        path: 'class-teachers', 
-        name: 'admin.class-teachers', 
-        component: ClassTeacherAssignment, 
-        meta: { title: 'Class Teacher Management' } 
-      },
-      { 
         path: 'roles', 
         name: 'admin.roles', 
         component: RolesPermissions 
+      },
+
+      { 
+        path: 'class-teachers', 
+        name: 'admin.class-teachers', 
+        component: ClassTeacherAssignment,
+        meta: { title: 'Class Teacher Assignment' }
       }
           ]
   },
@@ -107,20 +110,29 @@ const routes: RouteRecordRaw[] = [
       { path: '', redirect: '/teacher/dashboard' },
       { path: 'dashboard', name: 'teacher.dashboard', component: TeacherDashboard, meta: { title: 'Dashboard' } },
       { path: 'attendance', name: 'teacher.attendance', component: TeacherAttendance, meta: { title: 'Mark Attendance' } },
-      { path: 'view-attendance', name: 'teacher.view-attendance', component: TeacherViewAttendance, meta: { title: 'View Attendance' } },
+      { path: 'view-attendance', name: 'teacher.view-attendance', component: ViewAttendanceSubject, meta: { title: 'View Attendance' } },
       { path: 'classes', name: 'teacher.classes', component: TeacherClasses, meta: { title: 'My Classes' } },
       { path: 'students/:id?', name: 'teacher.students', component: TeacherStudents, meta: { title: 'My Students' } },
       { path: 'reports', name: 'teacher.reports', component: TeacherReports, meta: { title: 'Reports' } },
       { path: 'profile', name: 'teacher.profile', component: TeacherProfile, meta: { title: 'Profile' } },
-      { 
-      path: 'homeroom', 
-      name: 'teacher.homeroom', 
-      component: ClassTeacherDashboard, 
-      meta: { title: 'Homeroom Dashboard' } 
-    },
+     
     ]
   },
   
+  {
+  path: '/homeroom',
+  component: HomeroomLayout,
+  meta: { requiresAuth: true, role: 'teacher', isHomeroom: true },
+  children: [
+    { path: '', redirect: '/homeroom/dashboard' },
+    { path: 'dashboard', name: 'homeroom.dashboard', component: HomeroomDashboard, meta: { title: 'Homeroom Dashboard' } },
+    { path: 'attendance', name: 'homeroom.attendance', component: () => import('@/components/teacher/HomeroomAttendance.vue'), meta: { title: 'Mark Attendance' } },
+    { path: 'view-attendance', name: 'homeroom.view-attendance', component: () => import('@/components/teacher/ViewAttendanceTeacher.vue'), meta: { title: 'View Attendance' } },
+    { path: 'students/:id?', name: 'homeroom.students', component: () => import('@/components/teacher/Students.vue'), meta: { title: 'My Students' } },
+    { path: 'reports', name: 'homeroom.reports', component: () => import('@/components/teacher/Reports.vue'), meta: { title: 'Reports' } },
+    { path: 'profile', name: 'homeroom.profile', component: () => import('@/components/teacher/Profile.vue'), meta: { title: 'Profile' } },
+  ]
+},
   // Student routes
   {
     path: '/student',
@@ -161,6 +173,7 @@ const router = createRouter({
     router.beforeEach((to) => {
       const token = localStorage.getItem('access_token')
       const userStr = localStorage.getItem('user')
+      const isClassTeacher = localStorage.getItem('is_class_teacher') === 'true'
       
       // Parse user if exists
       let user = null
@@ -171,6 +184,18 @@ const router = createRouter({
           localStorage.removeItem('user')
           return '/login'
         }
+      }
+
+      if (to.path === '/teacher/dashboard' && isClassTeacher && token) {
+        return '/homeroom/dashboard'
+      }
+
+       if (to.path.startsWith('/teacher') && to.path !== '/teacher/login' && isClassTeacher && token) {
+        return '/homeroom/dashboard'
+      }
+
+      if (to.path.startsWith('/homeroom') && token && user && user.role === 'teacher' && !isClassTeacher) {
+        return '/teacher/dashboard'
       }
       
       // Check if route requires authentication
@@ -184,6 +209,10 @@ const router = createRouter({
           console.warn('Role mismatch:', user?.role, '-> required:', to.meta.role)
 
           if(user && user.role){
+
+            if (user.role === 'teacher' && isClassTeacher) {
+              return '/homeroom/dashboard'
+            }
             return `/${user.role}/dashboard`
           }
 
@@ -194,6 +223,9 @@ const router = createRouter({
   
   // If route is for guests only (login/register)
     if (to.meta.guest && token && user) {
+        if (user.role === 'teacher' && isClassTeacher) {
+          return '/homeroom/dashboard'
+        }
         const routes: Record<string, string> = {
           admin: '/admin/dashboard',
           teacher: '/teacher/dashboard',
