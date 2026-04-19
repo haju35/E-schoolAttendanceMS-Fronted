@@ -18,23 +18,50 @@
     </div>
 
     <!-- Roles List -->
-    <div v-for="role in roles" :key="role.id" class="mb-6 p-4 border rounded">
-      <h3 class="font-bold text-lg mb-2">{{ role.name }}</h3>
+    <div
+      v-for="role in roles"
+      :key="role.id"
+      class="mb-6 p-4 border rounded"
+    >
+      <div class="flex justify-between items-center">
+        <h3 class="font-bold text-lg">{{ role.name }}</h3>
 
-      <div class="grid grid-cols-2 gap-2">
-        <label
-          v-for="perm in permissions"
-          :key="perm.id"
-          class="flex items-center gap-2"
+        <!-- Toggle Dropdown -->
+        <button
+          @click="toggleDropdown(role.id)"
+          class="bg-gray-200 px-3 py-1 rounded"
         >
-          <input
-            type="checkbox"
-            :value="perm.id"
-            v-model="role.permission_ids"
-            @change="updateRole(role)"
-          />
-          {{ perm.name }}
-        </label>
+          Manage Permissions
+        </button>
+      </div>
+
+      <!-- Dropdown -->
+      <div
+        v-if="openRoleId === role.id"
+        class="mt-4 border p-4 rounded bg-gray-50"
+      >
+        <div class="grid grid-cols-2 gap-2">
+          <label
+            v-for="perm in permissions"
+            :key="perm.id"
+            class="flex items-center gap-2"
+          >
+            <input
+              type="checkbox"
+              :value="perm.id"
+              v-model="role.permission_ids"
+            />
+            {{ perm.name }}
+          </label>
+        </div>
+
+        <!-- Save Button -->
+        <button
+          @click="updateRole(role)"
+          class="mt-4 bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Save Changes
+        </button>
       </div>
     </div>
   </div>
@@ -51,15 +78,24 @@ const toast = useToast()
 const roleName = ref('')
 const roles = ref([])
 const permissions = ref([])
+const openRoleId = ref(null)
+
+// toggle dropdown
+const toggleDropdown = (roleId) => {
+  openRoleId.value = openRoleId.value === roleId ? null : roleId
+}
 
 // fetch roles + permissions
 const fetchData = async () => {
   try {
     const res = await api.get('/admin/roles-permissions')
-    roles.value = res.data.roles.map(role => ({id: role.id,
+
+    roles.value = res.data.roles.map(role => ({
+      id: role.id,
       name: role.name,
-      permission_ids: role.permissions.map(p=>p.id)
+      permission_ids: role.permissions.map(p => p.id)
     }))
+
     permissions.value = res.data.permissions
   } catch (error) {
     console.error('Fetch error:', error)
@@ -67,7 +103,7 @@ const fetchData = async () => {
   }
 }
 
-// create role (FIXED)
+// create role
 const createRole = async () => {
   if (!roleName.value.trim()) {
     toast.error('Role name is required')
@@ -88,17 +124,15 @@ const createRole = async () => {
   }
 }
 
-// update permissions (FIXED)
+// update permissions
 const updateRole = async (role) => {
-  console.log('ROLE DATA:', role)
-  console.log('Sending permissions:', role.permission_ids)
-  console.log('TYPE:', typeof role.permission_ids)
   try {
     await api.post(`/admin/roles/${role.id}/permissions`, {
       permissions: role.permission_ids
     })
 
     toast.success('Permissions updated')
+    openRoleId.value = null // close dropdown after save
   } catch (error) {
     console.error(error)
     toast.error('Update failed')
