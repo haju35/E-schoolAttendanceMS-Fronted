@@ -41,11 +41,6 @@
     <!-- Sidebar -->
     <div :class="['fixed inset-y-0 left-0 z-10 w-64 bg-white shadow-lg mt-16 transform transition-transform duration-200 ease-in-out', sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
       <div class="h-full overflow-y-auto">
-        <div class="px-4 py-6 border-b">
-          <div class="flex items-center space-x-3">
-            
-          </div>
-        </div>
         
         <nav class="mt-5 px-2 space-y-1">
           <!-- Dashboard -->

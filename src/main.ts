@@ -2,6 +2,7 @@ import { createApp } from 'vue';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import './assets/styles/main.css';
+import VueApexCharts from 'vue3-apexcharts';
 
 import App from './App.vue';
 import router from './router';
@@ -19,3 +20,4 @@ const app = createApp(App);
 app.use(router);
 app.use(Toast, toastOptions);
 app.mount('#app');
+app.use(VueApexCharts);

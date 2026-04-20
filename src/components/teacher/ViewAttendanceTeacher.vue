@@ -8,7 +8,7 @@
     <!-- No Assignments Warning -->
     <div v-if="!loading && hasNoAssignments" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6 mb-6">
       <div class="flex items-center justify-center flex-col text-center">
-        <svg class="w-16 h-16 text-yellow-600 dark:text-yellow-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-yellow-600 dark:text-yellow-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         <h3 class="text-lg font-semibold text-yellow-800 dark:text-yellow-300 mb-2">No Classes Assigned</h3>
@@ -70,23 +70,37 @@
           </div>
         </div>
         
-        <div class="mt-4">
+        <div class="mt-4 flex gap-3">
           <button 
             @click="loadReport" 
-            class="w-full md:w-auto bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
+            class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
             :disabled="!selectedClassId || !selectedSectionId || loadingReport"
           >
             {{ loadingReport ? 'Loading...' : 'View Attendance' }}
+          </button>
+          <button 
+            @click="clearFilters" 
+            class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition"
+          >
+            Clear
           </button>
         </div>
       </div>
 
       <!-- Attendance Table -->
       <div v-if="attendanceData && attendanceData.length > 0" class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b dark:border-gray-700">
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-            Attendance for {{ formatDate(selectedDate) }}
-          </h2>
+        <div class="px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Attendance for {{ formatDate(selectedDate) }}
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Class: {{ getClassName() }} | Section: {{ getSectionName() }}
+            </p>
+          </div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Total Students: {{ attendanceData.length }}
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -118,10 +132,11 @@
                     :class="{
                       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': student.status === 'present',
                       'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': student.status === 'absent',
-                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': student.status === 'late'
+                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': student.status === 'late',
+                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300': student.status === 'not_marked'
                     }"
                   >
-                    {{ student.status ? student.status.toUpperCase() : 'NOT MARKED' }}
+                    {{ getStatusText(student.status) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
@@ -137,10 +152,14 @@
           <div class="flex flex-wrap justify-between items-center gap-4">
             <div class="text-sm text-gray-600 dark:text-gray-300">
               <span class="font-semibold">Summary:</span>
-              Present: {{ summary.present }} | 
-              Absent: {{ summary.absent }} | 
-              Late: {{ summary.late }} | 
-              Total: {{ summary.total }}
+              <span class="text-green-600 dark:text-green-400"> Present: {{ summary.present }}</span> |
+              <span class="text-red-600 dark:text-red-400"> Absent: {{ summary.absent }}</span> |
+              <span class="text-yellow-600 dark:text-yellow-400"> Late: {{ summary.late }}</span> |
+              <span class="text-gray-600 dark:text-gray-400"> Not Marked: {{ summary.notMarked }}</span> |
+              <span class="font-semibold"> Total: {{ summary.total }}</span>
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              Attendance Rate: {{ attendanceRate }}%
             </div>
           </div>
         </div>
@@ -153,6 +172,12 @@
         </svg>
         <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No attendance records found</h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No attendance has been marked for {{ formatDate(selectedDate) }}</p>
+        <button 
+          @click="goToMarkAttendance" 
+          class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+        >
+          Mark Attendance for this date
+        </button>
       </div>
     </div>
   </div>
@@ -160,11 +185,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import api from '../../services/api'
+import { useRouter } from 'vue-router'
+import teacherApi from '../../services/teacherApi'
 import { useToast } from 'vue-toastification'
 
+const router = useRouter()
 const toast = useToast()
 
+// State
 const loading = ref(true)
 const loadingReport = ref(false)
 const selectedClassId = ref<number | null>(null)
@@ -176,6 +204,7 @@ const availableSections = ref<any[]>([])
 const attendanceData = ref<any[]>([])
 const hasSearched = ref(false)
 
+// Computed
 const hasNoAssignments = computed(() => {
   return classTeacherClasses.value.length === 0
 })
@@ -184,11 +213,20 @@ const summary = computed(() => {
   const present = attendanceData.value.filter(s => s.status === 'present').length
   const absent = attendanceData.value.filter(s => s.status === 'absent').length
   const late = attendanceData.value.filter(s => s.status === 'late').length
+  const notMarked = attendanceData.value.filter(s => s.status === 'not_marked').length
   const total = attendanceData.value.length
-  return { present, absent, late, total }
+  return { present, absent, late, notMarked, total }
 })
 
-const getInitials = (name: string) => name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'S'
+const attendanceRate = computed(() => {
+  if (summary.value.total === 0) return 0
+  const marked = summary.value.present + summary.value.absent + summary.value.late
+  return Math.round((marked / summary.value.total) * 100)
+})
+
+const getInitials = (name: string) => {
+  return name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'S'
+}
 
 const formatDate = (date: string) => {
   if (!date) return ''
@@ -199,22 +237,61 @@ const formatDate = (date: string) => {
   })
 }
 
+const getStatusText = (status: string) => {
+  switch(status) {
+    case 'present': return 'PRESENT'
+    case 'absent': return 'ABSENT'
+    case 'late': return 'LATE'
+    case 'not_marked': return 'NOT MARKED'
+    default: return 'UNKNOWN'
+  }
+}
+
+const getClassName = () => {
+  const cls = classTeacherClasses.value.find(c => c.id === selectedClassId.value)
+  return cls?.name || ''
+}
+
+const getSectionName = () => {
+  const section = availableSections.value.find(s => s.id === selectedSectionId.value)
+  return section?.name || ''
+}
+
+// FIXED: Use teacherApi.getClassTeacherClasses()
 const fetchClassTeacherClasses = async () => {
+  loading.value = true
   try {
-    const response = await api.get('/teacher/class-teacher/classes')
-    if (response.data.success) {
-      if (response.data.data && response.data.data.length > 0) {
-        classTeacherClasses.value = response.data.data.map((classItem: any) => ({
-          id: classItem.id,
-          name: classItem.name,
-          sections: classItem.sections || []
-        }))
-      } else {
-        classTeacherClasses.value = []
+    const response = await teacherApi.getClassTeacherClasses()
+    console.log('Class Teacher Classes Response:', response.data)
+    
+    if (response.data.success && response.data.data && response.data.data.length > 0) {
+      classTeacherClasses.value = response.data.data.map((classItem: any) => ({
+        id: classItem.id,
+        name: classItem.name,
+        sections: classItem.sections || []
+      }))
+      
+      console.log('Loaded classes:', classTeacherClasses.value)
+      
+      // Auto-select first class and its sections
+      if (classTeacherClasses.value.length > 0) {
+        const firstClass = classTeacherClasses.value[0]
+        selectedClassId.value = firstClass.id
+        availableSections.value = firstClass.sections || []
+        
+        // Auto-select first section if available
+        if (availableSections.value.length > 0) {
+          selectedSectionId.value = availableSections.value[0].id
+        }
       }
+    } else {
+      classTeacherClasses.value = []
+      console.log('No class teacher classes found')
+      toast.info('No homeroom classes assigned to you')
     }
   } catch (error: any) {
     console.error('Failed to fetch class teacher classes:', error)
+    toast.error(error.response?.data?.message || 'Failed to load assigned classes')
     classTeacherClasses.value = []
   } finally {
     loading.value = false
@@ -224,7 +301,7 @@ const fetchClassTeacherClasses = async () => {
 const onClassChange = () => {
   const selectedClass = classTeacherClasses.value.find(c => c.id === selectedClassId.value)
   availableSections.value = selectedClass ? selectedClass.sections : []
-  selectedSectionId.value = null
+  selectedSectionId.value = availableSections.value.length > 0 ? availableSections.value[0].id : null
   attendanceData.value = []
   hasSearched.value = false
 }
@@ -232,6 +309,15 @@ const onClassChange = () => {
 const onSectionChange = () => {
   attendanceData.value = []
   hasSearched.value = false
+}
+
+const clearFilters = () => {
+  selectedClassId.value = null
+  selectedSectionId.value = null
+  selectedDate.value = new Date().toISOString().split('T')[0]
+  attendanceData.value = []
+  hasSearched.value = false
+  availableSections.value = []
 }
 
 const loadReport = async () => {
@@ -249,37 +335,35 @@ const loadReport = async () => {
   hasSearched.value = true
   
   try {
-    const response = await api.get('/teacher/class-attendance/students', {
-      params: {
-        class_id: selectedClassId.value,
-        section_id: selectedSectionId.value,
-        date: selectedDate.value
-      }
-    })
+    // Use teacherApi to get attendance form data
+    const response = await teacherApi.getAttendanceForm(
+      selectedClassId.value,
+      selectedSectionId.value,
+      selectedDate.value,
+      0  // For homeroom attendance, subject_id is not needed
+    )
     
     console.log('Attendance API Response:', response.data)
     
     if (response.data.success) {
       const studentsData = response.data.data.students || []
-      const existingAttendance = response.data.data.existing_attendance || []
       
       if (studentsData.length > 0) {
-        attendanceData.value = studentsData.map((s: any) => {
-          const existingRecord = existingAttendance.find((a: any) => a.student_id === s.id)
-          return {
-            id: s.id,
-            roll_number: s.roll_number || '-',
-            admission_number: s.admission_number || '',
-            name: s.name || s.user?.name || 'Unknown',
-            status: existingRecord ? existingRecord.status : 'not_marked',
-            remarks: existingRecord ? (existingRecord.remarks || '') : ''
-          }
-        })
+        attendanceData.value = studentsData.map((s: any) => ({
+          id: s.id,
+          roll_number: s.roll_number || '-',
+          admission_number: s.admission_number || '',
+          name: s.name || 'Unknown',
+          status: s.status || 'not_marked',
+          remarks: s.remarks || ''
+        }))
         
-        if (existingAttendance.length === 0) {
-          toast.info('No attendance marked for this date')
+        const markedCount = attendanceData.value.filter(s => s.status !== 'not_marked').length
+        
+        if (markedCount > 0) {
+          toast.success(`Loaded ${markedCount} attendance records for ${formatDate(selectedDate.value)}`)
         } else {
-          toast.success(`Loaded attendance for ${formatDate(selectedDate.value)}`)
+          toast.info(`No attendance marked for ${formatDate(selectedDate.value)}`)
         }
       } else {
         attendanceData.value = []
@@ -295,6 +379,10 @@ const loadReport = async () => {
   } finally {
     loadingReport.value = false
   }
+}
+
+const goToMarkAttendance = () => {
+  router.push('/homeroom/attendance')
 }
 
 onMounted(() => {

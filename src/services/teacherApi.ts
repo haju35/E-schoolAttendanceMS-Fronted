@@ -43,7 +43,15 @@ export const teacherApi = {
 
     getStudentClassAttendance: (studentId: number) => api.get(`/teacher/class-attendance/student/${studentId}`),
 
+    getClassTeacherClasses: () => api.get('/teacher/class-teacher/classes'),
+    
     checkClassTeacherStatus: () => api.get('/teacher/class-teacher/status'),
+
+    uploadPhoto: (formData) => api.post('/teacher/profile/photo', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }),
 };
 
 export default teacherApi;

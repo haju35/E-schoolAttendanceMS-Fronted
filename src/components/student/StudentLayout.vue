@@ -56,13 +56,6 @@
         sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       ]">
       <div class="h-full overflow-y-auto">
-        <div class="px-4 py-6 border-b">
-          <div class="flex items-start space-x-3">
-          
-            
-          </div>
-        </div>
-
         <nav class="mt-5 px-2 space-y-1">
           <router-link to="/student/dashboard"
             class="group flex items-center px-2 py-2 text-base font-medium rounded-md"

@@ -82,6 +82,38 @@
         </div>
       </div>
 
+      <!-- Charts Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Attendance Trend Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Attendance Trend (Last 7 Days)</h3>
+            <button @click="refreshChart" class="text-indigo-600 hover:text-indigo-800 text-sm">
+              Refresh
+            </button>
+          </div>
+          <div class="h-64">
+            <canvas ref="attendanceChartCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Student Distribution Chart -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Distribution by Class</h3>
+          <div class="h-64">
+            <canvas ref="studentDistributionCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Attendance Chart -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Monthly Attendance Overview</h3>
+        <div class="h-80">
+          <canvas ref="monthlyAttendanceCanvas"></canvas>
+        </div>
+      </div>
+
       <!-- Quick Actions & Attendance Summary -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6">
@@ -158,13 +190,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, nextTick, onBeforeUnmount } from 'vue';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
+import Chart from 'chart.js/auto';
 
 const toast = useToast();
 const loading = ref(true);
 const error = ref('');
+
+// Chart references
+const attendanceChartCanvas = ref<HTMLCanvasElement | null>(null);
+const studentDistributionCanvas = ref<HTMLCanvasElement | null>(null);
+const monthlyAttendanceCanvas = ref<HTMLCanvasElement | null>(null);
+
+// Chart instances
+let attendanceChart: Chart | null = null;
+let studentDistributionChart: Chart | null = null;
+let monthlyAttendanceChart: Chart | null = null;
 
 // Dashboard stats
 const stats = ref({
@@ -179,16 +222,17 @@ const stats = ref({
   late_today: 0
 });
 
-const recentStudents = ref([]);
-const recentTeachers = ref([]);
-
-// Subjects data
-const subjects = ref([]);
-const showSubjectModal = ref(false);
-const subjectSubmitting = ref(false);
-const subjectForm = ref({
-  name: '',
-  code: ''
+// Sample chart data (replace with API data)
+const attendanceData = ref([45, 48, 42, 50, 47, 52, 49]);
+const classData = ref({
+  labels: ['Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+  counts: [45, 52, 38, 41]
+});
+const monthlyData = ref({
+  labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+  present: [850, 820, 890, 910],
+  absent: [45, 52, 38, 42],
+  late: [32, 28, 35, 30]
 });
 
 // Computed percentages
@@ -212,18 +256,200 @@ const latePercentage = computed(() => {
   return (stats.value.late_today / stats.value.total_students) * 100;
 });
 
-const getInitials = (name: string) => {
-  if (!name) return '?';
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+// Initialize Attendance Trend Chart
+const initAttendanceTrendChart = () => {
+  if (!attendanceChartCanvas.value) return;
+  
+  const ctx = attendanceChartCanvas.value.getContext('2d');
+  if (!ctx) return;
+  
+  if (attendanceChart) attendanceChart.destroy();
+  
+  attendanceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+      datasets: [{
+        label: 'Present Students',
+        data: attendanceData.value,
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: 'rgb(34, 197, 94)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: { size: 12 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.dataset.label}: ${context.raw} students`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Number of Students', font: { size: 12 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: {
+          title: { display: true, text: 'Day', font: { size: 12 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
 };
 
-const formatDate = (date: string) => {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
+// Initialize Student Distribution Chart
+const initStudentDistributionChart = () => {
+  if (!studentDistributionCanvas.value) return;
+  
+  const ctx = studentDistributionCanvas.value.getContext('2d');
+  if (!ctx) return;
+  
+  if (studentDistributionChart) studentDistributionChart.destroy();
+  
+  studentDistributionChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: classData.value.labels,
+      datasets: [{
+        label: 'Number of Students',
+        data: classData.value.counts,
+        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+        borderColor: 'rgb(99, 102, 241)',
+        borderWidth: 2,
+        borderRadius: 8,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: { size: 12 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.dataset.label}: ${context.raw} students`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Number of Students', font: { size: 12 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: {
+          title: { display: true, text: 'Class', font: { size: 12 } },
+          grid: { display: false }
+        }
+      }
+    }
   });
+};
+
+// Initialize Monthly Attendance Chart
+const initMonthlyAttendanceChart = () => {
+  if (!monthlyAttendanceCanvas.value) return;
+  
+  const ctx = monthlyAttendanceCanvas.value.getContext('2d');
+  if (!ctx) return;
+  
+  if (monthlyAttendanceChart) monthlyAttendanceChart.destroy();
+  
+  monthlyAttendanceChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: monthlyData.value.labels,
+      datasets: [
+        {
+          label: 'Present',
+          data: monthlyData.value.present,
+          backgroundColor: 'rgba(34, 197, 94, 0.7)',
+          borderColor: 'rgb(34, 197, 94)',
+          borderWidth: 1,
+          borderRadius: 4
+        },
+        {
+          label: 'Absent',
+          data: monthlyData.value.absent,
+          backgroundColor: 'rgba(239, 68, 68, 0.7)',
+          borderColor: 'rgb(239, 68, 68)',
+          borderWidth: 1,
+          borderRadius: 4
+        },
+        {
+          label: 'Late',
+          data: monthlyData.value.late,
+          backgroundColor: 'rgba(234, 179, 8, 0.7)',
+          borderColor: 'rgb(234, 179, 8)',
+          borderWidth: 1,
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { font: { size: 12 } }
+        },
+        tooltip: {
+          callbacks: {
+            label: (context) => `${context.dataset.label}: ${context.raw} students`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Number of Students', font: { size: 12 } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: {
+          title: { display: true, text: 'Month', font: { size: 12 } },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+};
+
+// Refresh all charts
+const refreshChart = () => {
+  initAttendanceTrendChart();
+  initStudentDistributionChart();
+  initMonthlyAttendanceChart();
+};
+
+// Initialize all charts after DOM is ready
+const initCharts = async () => {
+  await nextTick();
+  setTimeout(() => {
+    initAttendanceTrendChart();
+    initStudentDistributionChart();
+    initMonthlyAttendanceChart();
+  }, 100);
 };
 
 // Fetch dashboard data
@@ -251,12 +477,26 @@ const fetchDashboardData = async () => {
         late_today: data.late_today || 0
       };
       
-      recentStudents.value = data.recent_students || [];
-      recentTeachers.value = data.recent_teachers || [];
-      subjects.value = data.subjects || [];
-      loading.value = false;
+      // Update chart data from API if available
+      if (data.attendance_trend) attendanceData.value = data.attendance_trend;
+      if (data.class_distribution) {
+        classData.value = {
+          labels: data.class_distribution.map((c: any) => c.class_name),
+          counts: data.class_distribution.map((c: any) => c.count)
+        };
+      }
+      if (data.monthly_attendance) {
+        monthlyData.value = {
+          labels: data.monthly_attendance.map((m: any) => m.month),
+          present: data.monthly_attendance.map((m: any) => m.present),
+          absent: data.monthly_attendance.map((m: any) => m.absent),
+          late: data.monthly_attendance.map((m: any) => m.late)
+        };
+      }
       
-      console.log('Dashboard loaded:', stats.value);
+      // Re-initialize charts with new data
+      await initCharts();
+      loading.value = false;
     } else {
       throw new Error(response.data?.message || 'Failed to load dashboard data');
     }
@@ -264,92 +504,18 @@ const fetchDashboardData = async () => {
     console.error('Error loading dashboard:', err);
     error.value = err.response?.data?.message || err.message || 'Failed to load dashboard data';
     toast.error(error.value);
-  } finally {
     loading.value = false;
   }
 };
 
-// Fetch subjects
-const fetchSubjects = async () => {
-  try {
-    const response = await api.get('/admin/subjects', {params: {limit: 'all'}});
-    console.log('Subjects response:', response.data);
-    
-    if (response.data && response.data.data) {
-      subjects.value = Array.isArray(response.data.data) ? response.data.data : [];
-      console.log('Subjects loaded:', subjects.value.length);
-    } else {
-      subjects.value = [];
-    }
-  } catch (err: any) {
-    console.error('Error fetching subjects:', err);
-    toast.error(err.response?.data?.message || 'Failed to fetch subjects');
-    subjects.value = [];
-  }
-};
+// Cleanup charts on component unmount
+onBeforeUnmount(() => {
+  if (attendanceChart) attendanceChart.destroy();
+  if (studentDistributionChart) studentDistributionChart.destroy();
+  if (monthlyAttendanceChart) monthlyAttendanceChart.destroy();
+});
 
-// Create subject
-const createSubject = async () => {
-  if (!subjectForm.value.name || !subjectForm.value.code) {
-    toast.error('Please fill in all fields');
-    return;
-  }
-  
-  subjectSubmitting.value = true;
-  
-  try {
-    const response = await api.post('/admin/subjects', subjectForm.value);
-    console.log('Create subject response:', response.data);
-    
-    toast.success(response.data.message || 'Subject created successfully');
-    showSubjectModal.value = false;
-    subjectForm.value = { name: '', code: '' };
-    
-    // Refresh subjects list
-    await fetchSubjects();
-    
-  } catch (err: any) {
-    console.error('Error creating subject:', err);
-    const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to create subject';
-    toast.error(errorMessage);
-  } finally {
-    subjectSubmitting.value = false;
-  }
-};
-
-// Delete subject
-const deleteSubject = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this subject? This action cannot be undone.')) {
-    return;
-  }
-  
-  try {
-    const response = await api.delete(`/admin/subjects/${id}`);
-    console.log('Delete subject response:', response.data);
-    
-    toast.success(response.data.message || 'Subject deleted successfully');
-    
-    // Refresh subjects list
-    await fetchSubjects();
-    
-  } catch (err: any) {
-    console.error('Error deleting subject:', err);
-    const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Cannot delete subject';
-    toast.error(errorMessage);
-  }
-};
-
-onMounted(async () => {
-  await fetchDashboardData();
-  await fetchSubjects();
+onMounted(() => {
+  fetchDashboardData();
 });
 </script>
-
-<style scoped>
-[v-cloak] > * {
-  display: none;
-}
-[v-cloak]::before {
-  content: "loading...";
-}
-</style>

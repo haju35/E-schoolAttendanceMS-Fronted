@@ -212,10 +212,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'  // ← IMPORT ROUTER
 import api from '../../services/api'
 import { useToast } from 'vue-toastification'
 
 const toast = useToast()
+const router = useRouter()  // ← INITIALIZE ROUTER
 
 // State
 const loading = ref(true)
@@ -334,7 +336,7 @@ const loadClassStudents = async () => {
   try {
     const response = await api.get('/teacher/class-attendance/students', {
       params: {
-        class_id: selectedClassIdForClass.value,
+        class_room_id: selectedClassIdForClass.value,
         section_id: selectedSectionIdForClass.value,
         date: classAttendanceDate.value
       }
@@ -346,8 +348,6 @@ const loadClassStudents = async () => {
       const studentsData = response.data.data.students || []
       const existingAttendanceData = response.data.data.existing_attendance || []
       
-      // Check if there are actual attendance records with valid status
-      // Filter out any records that might be empty or default values
       const validAttendanceRecords = existingAttendanceData.filter((record: any) => {
         return record.status && record.status !== 'pending' && record.status !== ''
       })
@@ -359,7 +359,6 @@ const loadClassStudents = async () => {
       
       if (studentsData.length > 0) {
         classStudents.value = studentsData.map((s: any) => {
-          // Check if this student has existing attendance
           const existingRecord = validAttendanceRecords.find((a: any) => a.student_id === s.id)
           
           return {
@@ -367,8 +366,6 @@ const loadClassStudents = async () => {
             roll_number: s.roll_number || '-',
             admission_number: s.admission_number || '',
             name: s.name || s.user?.name || 'Unknown',
-            // If there's an existing record with valid status, use that status
-            // Otherwise default to 'present' for new attendance
             status: existingRecord ? existingRecord.status : 'present',
             remarks: existingRecord ? (existingRecord.remarks || '') : ''
           }
@@ -433,32 +430,49 @@ const submitClassAttendance = async () => {
   
   submittingClass.value = true
   try {
-    const attendanceData = {
+    const attendanceArray = classStudents.value.map(student => ({
+      student_id: student.id,
+      status: student.status,
+      remarks: student.remarks || ''
+    }))
+    
+    const payload = {
       date: classAttendanceDate.value,
-      class_id: selectedClassIdForClass.value,
+      class_room_id: selectedClassIdForClass.value,
       section_id: selectedSectionIdForClass.value,
-      attendance: classStudents.value.map(s => ({
-        student_id: s.id,
-        status: s.status,
-        remarks: s.remarks || ''
-      }))
+      attendance: attendanceArray
     }
     
-    console.log('Submitting attendance:', attendanceData)
+    console.log('Submitting payload:', JSON.stringify(payload, null, 2))
     
-    const response = await api.post('/teacher/attendance/class', attendanceData)
+    const response = await api.post('/teacher/attendance/class', payload)
     
     if (response.data.success) {
-      toast.success('Class attendance submitted successfully!')
+      toast.success(`Successfully saved attendance for ${attendanceArray.length} students!`)
       hasExistingAttendance.value = true
       isEditingClassAttendance.value = false
-      await loadClassStudents() // Reload to get updated data
+      
+      await loadClassStudents()
+      
+      const viewHistory = confirm('Attendance saved! Do you want to view the attendance history?')
+      if (viewHistory) {
+        router.push('/homeroom/view-attendance')
+      }
     } else {
       toast.error(response.data.message || 'Failed to submit attendance')
     }
   } catch (error: any) {
     console.error('Submit error:', error)
-    toast.error(error.response?.data?.message || 'Failed to submit class attendance')
+    
+    if (error.response?.data?.errors) {
+      const errors = error.response.data.errors
+      const errorMessages = Object.values(errors).flat().join('\n')
+      toast.error(errorMessages)
+    } else if (error.response?.data?.message) {
+      toast.error(error.response.data.message)
+    } else {
+      toast.error('Failed to submit class attendance')
+    }
   } finally {
     submittingClass.value = false
   }

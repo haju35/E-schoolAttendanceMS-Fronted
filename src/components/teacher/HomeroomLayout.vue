@@ -10,14 +10,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
               </svg>
             </button>
-            <div class="flex items-center space-x-2">
-              <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                <svg class="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-              <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">Homeroom Portal</span>
-            </div>
+            <span class="text-xl font-bold text-indigo-600 dark:text-indigo-400">E-School Attendance</span>
           </div>
           
           <div class="flex items-center space-x-4">
@@ -32,14 +25,6 @@
                 :class="isDark ? 'translate-x-7' : 'translate-x-0'"
               ></span>
             </button>
-            
-            <!-- Class Info Badge -->
-            <div class="hidden md:flex items-center space-x-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-full px-3 py-1">
-              <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <span class="text-sm text-indigo-700 dark:text-indigo-300 font-medium">{{ classInfo?.class_name }} - {{ classInfo?.section_name }}</span>
-            </div>
             
             <!-- User Menu -->
             <div class="relative">
@@ -57,9 +42,6 @@
                 <router-link to="/homeroom/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700" @click="showProfileMenu = false">
                   My Profile
                 </router-link>
-                <router-link to="/teacher/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700" @click="showProfileMenu = false">
-                  Switch to Teacher View
-                </router-link>
                 <hr class="my-1">
                 <a href="#" @click="logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">Logout</a>
               </div>
@@ -72,19 +54,6 @@
     <!-- Sidebar -->
     <div :class="['fixed inset-y-0 left-0 z-10 w-64 bg-white dark:bg-gray-800 shadow-lg mt-16 transform transition-transform duration-200 ease-in-out', sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
       <div class="h-full overflow-y-auto">
-        <!-- Teacher Info -->
-        <div class="px-4 py-6 border-b dark:border-gray-700">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-              <span class="text-indigo-600 dark:text-indigo-300 font-bold text-lg">{{ teacherInitials }}</span>
-            </div>
-            <div>
-              <p class="font-semibold text-gray-800 dark:text-white">{{ teacherName }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Homeroom Teacher</p>
-            </div>
-          </div>
-        </div>
-        
         <nav class="mt-5 px-2 space-y-1">
           <!-- Dashboard -->
           <router-link to="/homeroom/dashboard" class="group flex items-center px-2 py-2 text-base font-medium rounded-md" :class="[$route.path === '/homeroom/dashboard' ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700']">
@@ -111,19 +80,15 @@
             View History
           </router-link>
 
-          <!-- My Students -->
-          <div 
-            @click="navigateToStudents" 
-            class="group flex items-center px-2 py-2 text-base font-medium rounded-md cursor-pointer"
-            :class="[$route.path === '/homeroom/students' || $route.path.includes('/homeroom/students/') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700']"
-          >
+          <!-- My Students - Direct link -->
+          <router-link to="/homeroom/students" class="group flex items-center px-2 py-2 text-base font-medium rounded-md" :class="[$route.path === '/homeroom/students' || $route.path.includes('/homeroom/students/') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700']">
             <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
             </svg>
             My Students
-          </div>
+          </router-link>
 
-          <!-- Attendance Reports -->
+          <!-- Attendance Reports - Direct link -->
           <router-link to="/homeroom/reports" class="group flex items-center px-2 py-2 text-base font-medium rounded-md" :class="[$route.path === '/homeroom/reports' ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700']">
             <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -156,7 +121,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../../composables/useAuth'
-import teacherApi from '../../services/teacherApi'
 import api from '../../services/api'
 import { useToast } from 'vue-toastification'
 import { useDarkMode } from '@/composables/useDarkMode'
@@ -188,25 +152,6 @@ const fetchClassInfo = async () => {
     }
   } catch (error) {
     console.error('Failed to fetch class info:', error)
-  }
-}
-
-const navigateToStudents = async () => {
-  try {
-    const response = await teacherApi.getClasses()
-    if (response.data.success && response.data.data.length > 0 && response.data.data[0].sections.length > 0) {
-      const firstClass = response.data.data[0]
-      const firstSection = firstClass.sections[0]
-      router.push({
-        path: `/homeroom/students/${firstClass.class.id}`,
-        query: { section_id: firstSection.section.id.toString() }
-      })
-    } else {
-      toast.warning('No classes assigned yet')
-    }
-  } catch (error) {
-    console.error(error)
-    toast.error('Failed to load classes')
   }
 }
 

@@ -56,18 +56,18 @@
     <!-- Sidebar -->
     <div :class="['fixed inset-y-0 left-0 z-10 w-64 bg-white dark:bg-gray-800  shadow-lg mt-16 transform transition-transform duration-200 ease-in-out', sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0']">
       <div class="h-full overflow-y-auto">
-        <div class="px-4 py-6 border-b">
+       <!-- <div class="px-4 py-6 border-b">
           <div class="flex items-center space-x-3">
-            <!--<div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
+            <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full flex items-center justify-center">
               <span class="text-white text-lg font-bold">{{ userInitial }}</span>
             </div>-->
             <!--<div>
               <p class="font-semibold text-gray-800">{{ adminName }}</p>
               <p class="text-sm text-gray-500">Administrator</p>
               <p class="text-xs text-gray-400">Role: Admin</p>
-            </div>-->
+            </div>
           </div>
-        </div>
+        </div>-->
         
         <nav class="mt-5 px-2 space-y-1">
           <!-- Dashboard -->
