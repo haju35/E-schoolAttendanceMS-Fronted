@@ -42,6 +42,16 @@
                 <router-link to="/homeroom/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700" @click="showProfileMenu = false">
                   My Profile
                 </router-link>
+                
+                <!-- Switch to Subject Teacher Dashboard -->
+                <button 
+                  v-if="hasBothRoles"
+                  @click="switchToSubjectTeacher" 
+                  class="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-gray-100 dark:text-indigo-400 dark:hover:bg-gray-700"
+                >
+                  Switch to Subject Teacher Dashboard
+                </button>
+                
                 <hr class="my-1">
                 <a href="#" @click="logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:hover:bg-gray-700">Logout</a>
               </div>
@@ -80,7 +90,7 @@
             View History
           </router-link>
 
-          <!-- My Students - Direct link -->
+          <!-- My Students -->
           <router-link to="/homeroom/students" class="group flex items-center px-2 py-2 text-base font-medium rounded-md" :class="[$route.path === '/homeroom/students' || $route.path.includes('/homeroom/students/') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700']">
             <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -88,7 +98,7 @@
             My Students
           </router-link>
 
-          <!-- Attendance Reports - Direct link -->
+          <!-- Reports -->
           <router-link to="/homeroom/reports" class="group flex items-center px-2 py-2 text-base font-medium rounded-md" :class="[$route.path === '/homeroom/reports' ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700']">
             <svg class="mr-3 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -132,6 +142,7 @@ const sidebarOpen = ref(false)
 const showProfileMenu = ref(false)
 const classInfo = ref<any>(null)
 const { isDark, toggleDark } = useDarkMode()
+const hasBothRoles = ref(false)
 
 const teacherName = computed(() => user.value?.name || 'Teacher')
 const teacherInitials = computed(() => teacherName.value.charAt(0).toUpperCase())
@@ -155,6 +166,23 @@ const fetchClassInfo = async () => {
   }
 }
 
+const checkBothRoles = async () => {
+  try {
+    const isClassTeacher = localStorage.getItem('is_class_teacher') === 'true'
+    const subjectCount = parseInt(localStorage.getItem('subject_count') || '0')
+    hasBothRoles.value = isClassTeacher && subjectCount > 0
+    console.log('Has both roles:', hasBothRoles.value)
+  } catch (error) {
+    console.error('Error checking roles:', error)
+  }
+}
+
+const switchToSubjectTeacher = () => {
+  // Switch to subject teacher dashboard
+  localStorage.setItem('dashboard_type', 'subject')
+  router.push('/teacher/dashboard')
+}
+
 const logout = () => {
   authLogout()
   router.push('/login')
@@ -162,5 +190,6 @@ const logout = () => {
 
 onMounted(() => {
   fetchClassInfo()
+  checkBothRoles()
 })
 </script>

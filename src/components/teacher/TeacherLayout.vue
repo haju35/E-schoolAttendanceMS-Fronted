@@ -29,6 +29,16 @@
                 <router-link to="/teacher/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" @click="showProfileMenu = false">
                   My Profile
                 </router-link>
+
+                <!-- Switch to Homeroom Dashboard -->
+                <button 
+                  v-if="hasBothRoles"
+                  @click="switchToHomeroom" 
+                  class="block w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-gray-100"
+                >
+                  Switch to Homeroom Dashboard
+                </button>
+                
                 <hr class="my-1">
                 <a href="#" @click="logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Logout</a>
               </div>
@@ -130,6 +140,7 @@ const toast = useToast()
 const sidebarOpen = ref(false)
 const showProfileMenu = ref(false)
 const teacherData = ref<any>(null)
+const hasBothRoles = ref(false)  // ADD THIS
 
 const teacherName = computed(() => user.value?.name || 'Teacher')
 const teacherInitials = computed(() => teacherName.value.charAt(0).toUpperCase())
@@ -153,6 +164,24 @@ const fetchTeacherData = async () => {
   } catch (error) {
     console.error('Error fetching teacher data:', error)
   }
+}
+
+// ADD THIS FUNCTION - Check if teacher has both roles
+const checkBothRoles = () => {
+  try {
+    const isClassTeacher = localStorage.getItem('is_class_teacher') === 'true'
+    const subjectCount = parseInt(localStorage.getItem('subject_count') || '0')
+    hasBothRoles.value = isClassTeacher && subjectCount > 0
+    console.log('Has both roles:', hasBothRoles.value, 'Subject count:', subjectCount)
+  } catch (error) {
+    console.error('Error checking roles:', error)
+  }
+}
+
+// UPDATE THIS - Rename to switchToHomeroom for clarity
+const switchToHomeroom = () => {
+  localStorage.setItem('dashboard_type', 'homeroom')
+  router.push('/homeroom/dashboard')
 }
 
 const navigateToStudents = async () => {
@@ -190,5 +219,6 @@ const logout = () => {
 
 onMounted(() => {
   fetchTeacherData()
+  checkBothRoles() 
 })
 </script>

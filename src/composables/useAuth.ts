@@ -27,11 +27,13 @@ export function useAuth() {
       const response = await api.post<ApiResponse<LoginResponse>>('/auth/login', credentials)
       
       if (response.data.success) {
-        const { access_token, user: userData, is_class_teacher: classTeacherStatus } = response.data
+        const { access_token, user: userData, is_class_teacher: classTeacherStatus, subject_count} = response.data
 
         localStorage.removeItem('access_token')
         localStorage.removeItem('user')
         localStorage.removeItem('is_class_teacher')
+        localStorage.removeItem('dashboard_type') // Clear previous dashboard selection
+        localStorage.removeItem('subject_count') // Clear subject count
         
         token.value = access_token
         user.value = userData
@@ -40,13 +42,14 @@ export function useAuth() {
         localStorage.setItem('access_token', access_token)
         localStorage.setItem('user', JSON.stringify(userData))
         localStorage.setItem('is_class_teacher', String(classTeacherStatus || false))
+        localStorage.setItem('subject_count', String(subject_count || 0))
         
         axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
         
         toast.success('Login successful!')
         
-        // Redirect based on role and class teacher status
-        redirectByRole(userData.role, classTeacherStatus)
+        // Check if user has both roles before redirecting
+        await checkAndRedirect(userData.role, classTeacherStatus)
         
         return true
       }
@@ -57,6 +60,48 @@ export function useAuth() {
       return false
     } finally {
       loading.value = false
+    }
+  }
+
+  // New function to check if teacher has subject assignments
+ const checkAndRedirect = async (role: string, isClassTeacherStatus?: boolean) => {
+    console.log('=== checkAndRedirect called ===');
+    console.log('Role:', role);
+    console.log('isClassTeacherStatus:', isClassTeacherStatus);
+    
+    // Only check for teachers
+    if (role !== 'teacher') {
+      console.log('Non-teacher role, redirecting...');
+      const routes: Record<string, string> = {
+        admin: '/admin/dashboard',
+        student: '/student/dashboard',
+        family: '/family/dashboard'
+      }
+      router.push(routes[role] || '/login')
+      return
+    }
+    
+    // For teachers, check if they have subject assignments
+    if (isClassTeacherStatus) {
+      // Get subject count from localStorage (set during login)
+      const subjectCount = parseInt(localStorage.getItem('subject_count') || '0')
+      console.log('Subject count from localStorage:', subjectCount);
+      
+      if (subjectCount > 0) {
+        // Teacher has BOTH roles (homeroom AND subject teacher)
+        console.log('Teacher has BOTH roles - redirecting to role selection');
+        router.push('/role-selection')
+      } else {
+        // Teacher is ONLY homeroom teacher
+        console.log('Teacher is ONLY homeroom teacher - redirecting to homeroom dashboard');
+        localStorage.setItem('dashboard_type', 'homeroom')
+        router.push('/homeroom/dashboard')
+      }
+    } else {
+      // Teacher is NOT a class teacher, go to subject teacher dashboard
+      console.log('Teacher is NOT a class teacher - redirecting to subject dashboard');
+      localStorage.setItem('dashboard_type', 'subject')
+      router.push('/teacher/dashboard')
     }
   }
 
@@ -141,6 +186,8 @@ export function useAuth() {
       localStorage.removeItem('access_token')
       localStorage.removeItem('user')
       localStorage.removeItem('is_class_teacher')
+      localStorage.removeItem('dashboard_type')
+      localStorage.removeItem('subject_count')
       delete axios.defaults.headers.common['Authorization']
       router.push('/login')
     }
@@ -162,22 +209,10 @@ export function useAuth() {
     }
   }
   
-  // SINGLE redirectByRole function (fixed)
+  // Keep redirectByRole for backward compatibility
   const redirectByRole = (role: string, isClassTeacherStatus?: boolean) => {
-    // If teacher and is class teacher, go to homeroom dashboard
-    if (role === 'teacher' && isClassTeacherStatus) {
-      router.push('/homeroom/dashboard')
-      return
-    }
-    
-    const routes: Record<string, string> = {
-      admin: '/admin/dashboard',
-      teacher: '/teacher/dashboard',
-      student: '/student/dashboard',
-      family: '/family/dashboard'
-    }
-
-    router.push(routes[role] || '/login')
+    // Use the new function
+    checkAndRedirect(role, isClassTeacherStatus)
   }
   
   return { 

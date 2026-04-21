@@ -37,6 +37,7 @@ const HomeroomLayout = () => import('@/components/teacher/HomeroomLayout.vue')
 const HomeroomDashboard = () => import('@/components/teacher/HomeroomDashboard.vue')
 const HomeroomAttendance = () => import('@/components/teacher/HomeroomAttendance.vue')
 const ViewAttendanceTeacher = () => import('@/components/teacher/ViewAttendanceTeacher.vue')
+const RoleSelection = () => import('@/components/teacher/RoleSelection.vue')
 
 // Lazy load student components
 const StudentLayout = () => import('@/components/student/StudentLayout.vue')
@@ -60,6 +61,13 @@ const routes: RouteRecordRaw[] = [
   { path: '/register', name: 'register', component: Register, meta: { guest: true, adminOnly: true } },
   { path: '/forgot-password', name: 'forgot-password', component: ForgotPassword, meta: { guest: true } },
   { path: '/reset-password/:token', name: 'reset-password', component: ResetPassword, meta: { guest: true } },
+
+   { 
+    path: '/role-selection', 
+    name: 'role-selection', 
+    component: RoleSelection, 
+    meta: { requiresAuth: true, role: 'teacher' } 
+  },
   
   // Admin routes (protected)
   {
@@ -116,7 +124,6 @@ const routes: RouteRecordRaw[] = [
     ]
   },  
   
-  // Homeroom Teacher routes (Class teacher)
 // Homeroom Teacher routes (Class teacher)
 {
   path: '/homeroom',
@@ -171,10 +178,12 @@ const router = createRouter({
 })
 
 // Navigation guard
+// Navigation guard
 router.beforeEach((to) => {
   const token = localStorage.getItem('access_token')
   const userStr = localStorage.getItem('user')
   const isClassTeacher = localStorage.getItem('is_class_teacher') === 'true'
+  const dashboardType = localStorage.getItem('dashboard_type') // 'homeroom' or 'subject'
   
   // Parse user if exists
   let user = null
@@ -187,13 +196,33 @@ router.beforeEach((to) => {
     }
   }
 
-  // Redirect teacher to homeroom if they are a class teacher
-  if (to.path === '/teacher/dashboard' && isClassTeacher && token) {
-    return '/homeroom/dashboard'
+  // If user has both roles and trying to access teacher dashboard without selection
+  if (to.path === '/teacher/dashboard' && isClassTeacher && token && !dashboardType) {
+    // They haven't selected which dashboard to use
+    return '/role-selection'
   }
 
-  if (to.path.startsWith('/teacher') && to.path !== '/teacher/login' && isClassTeacher && token) {
-    return '/homeroom/dashboard'
+  if (to.path === '/homeroom/dashboard' && !isClassTeacher && token) {
+    return '/teacher/dashboard'
+  }
+
+  // If user has both roles and selected subject dashboard
+  if (to.path === '/teacher/dashboard' && isClassTeacher && token && dashboardType === 'subject') {
+    return true // Allow access to subject dashboard
+  }
+
+  // If user has both roles and selected homeroom dashboard
+  if (to.path === '/homeroom/dashboard' && isClassTeacher && token && dashboardType === 'homeroom') {
+    return true // Allow access to homeroom dashboard
+  }
+
+  // Redirect teacher to homeroom if they are a class teacher and no dashboard type set
+  if (to.path === '/teacher/dashboard' && isClassTeacher && token && !dashboardType) {
+    return '/role-selection'
+  }
+
+  if (to.path.startsWith('/teacher') && to.path !== '/teacher/login' && isClassTeacher && token && !dashboardType) {
+    return '/role-selection'
   }
 
   // Redirect homeroom to regular teacher if not class teacher
@@ -212,7 +241,7 @@ router.beforeEach((to) => {
       console.warn('Role mismatch:', user?.role, '-> required:', to.meta.role)
       if (user && user.role) {
         if (user.role === 'teacher' && isClassTeacher) {
-          return '/homeroom/dashboard'
+          return '/role-selection'
         }
         return `/${user.role}/dashboard`
       }
@@ -223,7 +252,7 @@ router.beforeEach((to) => {
   // If route is for guests only (login/register)
   if (to.meta.guest && token && user) {
     if (user.role === 'teacher' && isClassTeacher) {
-      return '/homeroom/dashboard'
+      return '/role-selection'
     }
     const routes: Record<string, string> = {
       admin: '/admin/dashboard',
