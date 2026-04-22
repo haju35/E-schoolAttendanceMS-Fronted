@@ -24,8 +24,8 @@
                 class="w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 flex items-center justify-center"
                 :class="isDark ? 'translate-x-7' : 'translate-x-0'"
               >
-                <span v-if="!isDark" class="text-yellow-500 text-xs">☀️</span>
-                <span v-else class="text-gray-700 text-xs">🌙</span>
+                <span v-if="!isDark" class="text-yellow-500 text-xs"></span>
+                <span v-else class="text-gray-700 text-xs"></span>
               </span>
             </button>
             

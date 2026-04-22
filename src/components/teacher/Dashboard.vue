@@ -1,8 +1,8 @@
 <template>
   <div class="p-6">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Teacher Dashboard</h1>
-      <p class="text-gray-600">Welcome back, {{ teacherName }}!</p>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Teacher Dashboard</h1>
+      <p class="text-gray-600 dark:text-gray-400">Welcome back, {{ teacherName }}!</p>
     </div>
 
     <div v-if="loading" class="flex justify-center items-center h-64">
@@ -12,47 +12,47 @@
     <div v-else>
       <!-- Stats -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow p-6">
-          <p class="text-gray-500 text-sm">My Classes</p>
-          <p class="text-2xl font-bold text-indigo-600">{{ stats.my_classes }}</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
+          <p class="text-gray-500 dark:text-gray-400 text-sm">My Classes</p>
+          <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ stats.my_classes }}</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-          <p class="text-gray-500 text-sm">Total Students</p>
-          <p class="text-2xl font-bold text-green-600">{{ stats.total_students }}</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
+          <p class="text-gray-500 dark:text-gray-400 text-sm">Total Students</p>
+          <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.total_students }}</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-          <p class="text-gray-500 text-sm">Today's Attendance</p>
-          <p class="text-2xl font-bold text-blue-600">{{ stats.today_attendance }}</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
+          <p class="text-gray-500 dark:text-gray-400 text-sm">Today's Attendance</p>
+          <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats.today_attendance }}</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-6">
-          <p class="text-gray-500 text-sm">Subjects</p>
-          <p class="text-2xl font-bold text-purple-600">{{ stats.subjects_count }}</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
+          <p class="text-gray-500 dark:text-gray-400 text-sm">Subjects</p>
+          <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats.subjects_count }}</p>
         </div>
       </div>
 
       <!-- My Classes -->
-      <div class="bg-white rounded-lg shadow p-4">
-        <h2 class="text-lg font-semibold mb-4">My Classes</h2>
-        <div v-if="myClasses.length === 0" class="text-center text-gray-500">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">My Classes</h2>
+        <div v-if="myClasses.length === 0" class="text-center text-gray-500 dark:text-gray-400">
           <p>No classes assigned yet</p>
         </div>
 
         <div v-else class="space-y-4">
-          <div v-for="classItem in myClasses" :key="classItem.class.id" class="border p-3 rounded">
+          <div v-for="classItem in myClasses" :key="classItem.class.id" class="border dark:border-gray-700 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div class="flex justify-between items-center mb-2">
-              <h3 class="font-semibold">{{ classItem.class.name }}</h3>
+              <h3 class="font-semibold text-gray-800 dark:text-white">{{ classItem.class.name }}</h3>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div v-for="section in classItem.sections" :key="section.section.id" class="border-l-2 pl-3 border-indigo-200">
-                <div class="font-medium">Section {{ section.section.name }}</div>
-                <div class="text-xs text-gray-500">Capacity: {{ section.section.capacity }}</div>
+              <div v-for="section in classItem.sections" :key="section.section.id" class="border-l-2 pl-3 border-indigo-200 dark:border-indigo-800">
+                <div class="font-medium text-gray-700 dark:text-gray-300">Section {{ section.section.name }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Capacity: {{ section.section.capacity }}</div>
                 <div class="mt-1 flex items-center space-x-2">
-                  <span class="text-green-600">{{ section.subjects.length }} subjects</span>
+                  <span class="text-green-600 dark:text-green-400">{{ section.subjects.length }} subjects</span>
                   <button 
                     v-if="section.section.id"
                     @click="viewStudents(classItem.class.id, section.section.id)" 
-                    class="text-indigo-600 hover:underline text-xs"
+                    class="text-indigo-600 dark:text-indigo-400 hover:underline text-xs"
                   >
                     View Students →
                   </button>

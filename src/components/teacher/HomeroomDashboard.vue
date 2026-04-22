@@ -5,6 +5,16 @@
       <p class="text-gray-600 dark:text-gray-400">Welcome back, {{ teacherName }}! Manage your homeroom class daily attendance.</p>
     </div>
 
+    <!-- Auto-refresh notification -->
+    <div v-if="autoRefreshNotification" class="mb-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 text-center animate-pulse">
+      <div class="flex items-center justify-center gap-2">
+        <svg class="w-5 h-5 text-green-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span class="text-green-700 dark:text-green-300 text-sm">Refreshing dashboard...</span>
+      </div>
+    </div>
+
     <div v-if="loading" class="flex justify-center items-center h-64">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
     </div>
@@ -45,6 +55,20 @@
           <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats.monthly_rate }}%</p>
           <p class="text-sm text-gray-500 mt-1">Average attendance</p>
         </div>
+      </div>
+
+      <!-- Refresh Button -->
+      <div class="flex justify-end mb-4">
+        <button 
+          @click="refreshDashboard" 
+          :disabled="refreshing"
+          class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-4 py-2 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition flex items-center gap-2"
+        >
+          <svg class="w-4 h-4" :class="{'animate-spin': refreshing}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          {{ refreshing ? 'Refreshing...' : 'Refresh Dashboard' }}
+        </button>
       </div>
 
       <!-- Student List -->
@@ -104,7 +128,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useToast } from 'vue-toastification'
@@ -116,6 +140,8 @@ const { user } = useAuth()
 
 const teacherName = computed(() => user.value?.name || 'Teacher')
 const loading = ref(true)
+const refreshing = ref(false)
+const autoRefreshNotification = ref(false)
 const isClassTeacher = ref(false)
 const classInfo = ref<any>(null)
 const students = ref<any[]>([])
@@ -125,15 +151,15 @@ const stats = ref({
   monthly_rate: 0
 })
 
+let refreshInterval: number | null = null
+
 const todayDate = computed(() => {
   const today = new Date()
   return today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 })
 
 const fetchDashboardData = async () => {
-  loading.value = true
   try {
-    // Get dashboard data
     const response = await api.get('/teacher/class-teacher/dashboard')
     console.log('Dashboard Data:', response.data)
     
@@ -146,89 +172,83 @@ const fetchDashboardData = async () => {
         stats.value.total_students = data.class_teacher_info.total_students || 0
         stats.value.today_marked = data.class_teacher_info.today_attendance_marked || false
         
-        // Get basic student list from dashboard
+        // Get students from dashboard
         const basicStudents = data.class_teacher_info.students || []
         
         if (basicStudents.length > 0) {
-          // Fetch attendance counts for each student
-          await fetchAttendanceCountsForStudents(basicStudents)
+          // Calculate attendance counts from the dashboard data
+          // The dashboard should already have present_count, absent_count, etc.
+          students.value = basicStudents.map((s: any) => ({
+            id: s.id,
+            name: s.user?.name || s.name || 'Unknown',
+            roll_number: s.roll_number || '-',
+            present: s.present_count || 0,
+            absent: s.absent_count || 0,
+            late: s.late_count || 0,
+            attendance_percentage: s.attendance_percentage || 0
+          }))
+          
+          // Calculate monthly rate
+          if (students.value.length > 0) {
+            const total = students.value.reduce((sum, s) => sum + (s.attendance_percentage || 0), 0)
+            stats.value.monthly_rate = Math.round(total / students.value.length)
+          }
         }
       }
     }
   } catch (error: any) {
     console.error('Failed to load dashboard:', error)
     toast.error(error.response?.data?.message || 'Failed to load dashboard')
-  } finally {
-    loading.value = false
   }
 }
 
-const fetchAttendanceCountsForStudents = async (basicStudents: any[]) => {
-  try {
-    // Get current month's attendance data
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth() + 1
-    
-    // Fetch attendance records for the current month
-    const attendanceResponse = await api.get('/teacher/attendance/monthly-summary', {
-      params: {
-        class_room_id: classInfo.value.class_id,
-        section_id: classInfo.value.section_id,
-        year: year,
-        month: month
-      }
-    }).catch(() => ({ data: { success: false, data: [] } }))
-    
-    let attendanceMap = new Map()
-    
-    if (attendanceResponse.data.success && attendanceResponse.data.data) {
-      // Create a map of student_id to attendance counts
-      attendanceResponse.data.data.forEach((record: any) => {
-        attendanceMap.set(record.student_id, {
-          present: record.present_count || 0,
-          absent: record.absent_count || 0,
-          late: record.late_count || 0,
-          percentage: record.attendance_percentage || 0
-        })
-      })
+const loadDashboardData = async () => {
+  loading.value = true
+  await fetchDashboardData()
+  loading.value = false
+}
+
+const refreshDashboard = async () => {
+  refreshing.value = true
+  autoRefreshNotification.value = true
+  await fetchDashboardData()
+  refreshing.value = false
+  toast.success('Dashboard refreshed')
+  setTimeout(() => {
+    autoRefreshNotification.value = false
+  }, 2000)
+}
+
+// Auto-refresh every 30 seconds
+const startAutoRefresh = () => {
+  if (refreshInterval) clearInterval(refreshInterval)
+  refreshInterval = window.setInterval(async () => {
+    if (!loading.value && !refreshing.value) {
+      console.log('Auto-refreshing dashboard...')
+      await fetchDashboardData()
     }
-    
-    // Map students with attendance data
-    students.value = basicStudents.map((s: any) => {
-      const attendance = attendanceMap.get(s.id) || { present: 0, absent: 0, late: 0, percentage: 0 }
-      
-      return {
-        id: s.id,
-        name: s.user?.name || s.name || 'Unknown',
-        roll_number: s.roll_number || '-',
-        present: attendance.present,
-        absent: attendance.absent,
-        late: attendance.late,
-        attendance_percentage: attendance.percentage
-      }
-    })
-    
-    // Calculate monthly rate
-    if (students.value.length > 0) {
-      const total = students.value.reduce((sum, s) => sum + (s.attendance_percentage || 0), 0)
-      stats.value.monthly_rate = Math.round(total / students.value.length)
-    }
-    
-  } catch (error) {
-    console.error('Failed to fetch attendance counts:', error)
-    
-    // Fallback: show students without attendance data
-    students.value = basicStudents.map((s: any) => ({
-      id: s.id,
-      name: s.user?.name || s.name || 'Unknown',
-      roll_number: s.roll_number || '-',
-      present: 0,
-      absent: 0,
-      late: 0,
-      attendance_percentage: 0
-    }))
+  }, 30000)
+}
+
+const stopAutoRefresh = () => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+    refreshInterval = null
   }
+}
+
+// Refresh when page becomes visible
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    console.log('Page became visible, refreshing...')
+    fetchDashboardData()
+  }
+}
+
+// Refresh on window focus
+const handleWindowFocus = () => {
+  console.log('Window focused, refreshing...')
+  fetchDashboardData()
 }
 
 const getAttendanceColor = (percentage: number) => {
@@ -250,6 +270,20 @@ const viewStudentDetail = (studentId: number) => {
 }
 
 onMounted(() => {
+  loadDashboardData()
+  startAutoRefresh()
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  window.addEventListener('focus', handleWindowFocus)
+})
+
+onActivated(() => {
+  console.log('Component activated, refreshing...')
   fetchDashboardData()
+})
+
+onBeforeUnmount(() => {
+  stopAutoRefresh()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+  window.removeEventListener('focus', handleWindowFocus)
 })
 </script>

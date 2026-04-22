@@ -1,17 +1,17 @@
 <template>
   <div class="p-6">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Attendance Reports</h1>
-      <p class="text-gray-600">Generate and download attendance reports</p>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Attendance Reports</h1>
+      <p class="text-gray-600 dark:text-gray-400">Generate and download attendance reports</p>
     </div>
 
     <!-- Report Filters -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Class Dropdown -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Class</label>
-          <select v-model.number="filters.class_room_id" class="input-field">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Class</label>
+          <select v-model.number="filters.class_room_id" class="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <option value="">Select Class</option>
             <option v-for="item in classes" :key="item.class.id" :value="item.class.id">
               {{ item.class.name }}
@@ -21,8 +21,8 @@
 
         <!-- Section Dropdown -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Section</label>
-          <select v-model.number="filters.section_id" class="input-field" :disabled="!filters.class_room_id">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Section</label>
+          <select v-model.number="filters.section_id" class="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white" :disabled="!filters.class_room_id">
             <option value="">Select Section</option>
             <option 
               v-for="sectionItem in classes.find(c => c.class.id === filters.class_room_id)?.sections || []" 
@@ -36,8 +36,8 @@
 
         <!-- Report Type -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
-          <select v-model="filters.report_type" class="input-field">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Report Type</label>
+          <select v-model="filters.report_type" class="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white">
             <option value="daily">Daily Report</option>
             <option value="weekly">Weekly Report</option>
             <option value="monthly">Monthly Report</option>
@@ -46,26 +46,26 @@
 
         <!-- Start Date -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
-          <input type="date" v-model="filters.start_date" class="input-field">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Start Date</label>
+          <input type="date" v-model="filters.start_date" class="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         </div>
 
         <!-- End Date -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">End Date</label>
-          <input type="date" v-model="filters.end_date" class="input-field">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">End Date</label>
+          <input type="date" v-model="filters.end_date" class="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         </div>
       </div>
 
       <!-- Buttons -->
       <div class="mt-4 flex space-x-3">
-        <button @click="generateReport" class="btn-primary" :disabled="loading">
+        <button @click="generateReport" class="btn-primary dark:bg-indigo-600 dark:hover:bg-indigo-700" :disabled="loading">
           {{ loading ? 'Generating...' : 'Generate Report' }}
         </button>
-        <button @click="exportToPDF" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition" :disabled="!reportData">
+        <button @click="exportToPDF" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition dark:bg-red-700 dark:hover:bg-red-800" :disabled="!reportData">
           Download PDF
         </button>
-        <button @click="printReport" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition" :disabled="!reportData">
+        <button @click="printReport" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition dark:bg-gray-700 dark:hover:bg-gray-600" :disabled="!reportData">
           Print
         </button>
       </div>
@@ -73,49 +73,49 @@
 
     <!-- Report Summary -->
     <div v-if="reportSummary" class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-      <div class="bg-white rounded-lg shadow p-4">
-        <p class="text-sm text-gray-500">Total Students</p>
-        <p class="text-2xl font-bold">{{ reportSummary.total_students }}</p>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Total Students</p>
+        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ reportSummary.total_students }}</p>
       </div>
-      <div class="bg-white rounded-lg shadow p-4">
-        <p class="text-sm text-gray-500">Average Attendance</p>
-        <p class="text-2xl font-bold text-green-600">{{ reportSummary.avg_attendance.toFixed(2) }}%</p>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Average Attendance</p>
+        <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ reportSummary.avg_attendance.toFixed(2) }}%</p>
       </div>
-      <div class="bg-white rounded-lg shadow p-4">
-        <p class="text-sm text-gray-500">Perfect Attendance</p>
-        <p class="text-2xl font-bold text-blue-600">{{ reportSummary.perfect_attendance_count }}</p>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Perfect Attendance</p>
+        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ reportSummary.perfect_attendance_count }}</p>
       </div>
     </div>
 
     <!-- Report Table -->
-    <div v-if="reportData" class="bg-white rounded-lg shadow overflow-hidden">
+    <div v-if="reportData" class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200" id="report-table">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700" id="report-table">
+          <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student Name</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Roll No</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Present</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Absent</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Late</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Percentage</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Student Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Roll No</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Present</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Absent</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Late</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Percentage</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="student in reportData" :key="student.student_id">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ student.name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ student.roll_number }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">{{ student.present }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">{{ student.absent }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600">{{ student.late }}</td>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tr v-for="student in reportData" :key="student.student_id" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ student.name }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ student.roll_number }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400">{{ student.present }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 dark:text-red-400">{{ student.absent }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400">{{ student.late }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="flex-1 mr-2">
-                    <div class="bg-gray-200 rounded-full h-2">
+                    <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div class="bg-green-500 rounded-full h-2" :style="{ width: student.percentage + '%' }"></div>
                     </div>
                   </div>
-                  <span class="text-sm">{{ student.percentage }}%</span>
+                  <span class="text-sm text-gray-700 dark:text-gray-300">{{ student.percentage }}%</span>
                 </div>
               </td>
             </tr>
@@ -304,8 +304,6 @@ const exportToPDF = () => {
       doc.setTextColor(0, 0, 0)
       doc.text('_________________________', 40, finalY)
       doc.text('_________________________', 140, finalY)
-      doc.text('Teacher\'s Signature', 45, finalY + 5)
-      doc.text('Principal\'s Signature', 145, finalY + 5)
     }
     
     // Footer
@@ -484,6 +482,7 @@ onMounted(() => {
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
   font-size: 0.875rem;
+  transition: all 0.2s;
 }
 
 .input-field:focus {

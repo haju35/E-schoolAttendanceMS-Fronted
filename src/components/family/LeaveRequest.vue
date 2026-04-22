@@ -1,15 +1,16 @@
 <template>
   <div class="p-6 max-w-2xl mx-auto">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Submit Leave Request</h1>
-      <p class="text-gray-600">Request leave for your child</p>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Submit Leave Request</h1>
+      <p class="text-gray-600 dark:text-gray-400">Request leave for your child</p>
     </div>
 
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <form @submit.prevent="submitLeave" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Select Child *</label>
-          <select v-model="form.child_id" required class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Child *</label>
+          <select v-model="form.child_id" required 
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:bg-gray-700 dark:text-white">
             <option value="">Select a child</option>
             <option v-for="child in children" :key="child.id" :value="child.id">
               {{ child.name }}
@@ -19,19 +20,21 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">From Date *</label>
-            <input type="date" v-model="form.from_date" required class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">From Date *</label>
+            <input type="date" v-model="form.from_date" required 
+                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:bg-gray-700 dark:text-white">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">To Date *</label>
-            <input type="date" v-model="form.to_date" required class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">To Date *</label>
+            <input type="date" v-model="form.to_date" required 
+                   class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:bg-gray-700 dark:text-white">
           </div>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Reason *</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason *</label>
           <textarea v-model="form.reason" rows="4" required placeholder="Please provide reason for leave..." 
-                    class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-indigo-500"></textarea>
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"></textarea>
         </div>
 
         <div class="flex space-x-3 pt-4">
@@ -46,7 +49,7 @@
         </div>
       </form>
 
-      <div v-if="message" :class="message.type === 'success' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'" class="mt-4 p-3 rounded border">
+      <div v-if="message" :class="message.type === 'success' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'" class="mt-4 p-3 rounded border">
         {{ message.text }}
       </div>
     </div>

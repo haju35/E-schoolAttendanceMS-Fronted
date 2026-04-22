@@ -348,17 +348,24 @@ const loadClassStudents = async () => {
       const studentsData = response.data.data.students || []
       const existingAttendanceData = response.data.data.existing_attendance || []
       
+      // Check if there are actual attendance records for THIS date
+      // Only count records that have a valid status and were created on the selected date
       const validAttendanceRecords = existingAttendanceData.filter((record: any) => {
-        return record.status && record.status !== 'pending' && record.status !== ''
+        return record.status && 
+               record.status !== 'pending' && 
+               record.status !== '' &&
+               record.date === classAttendanceDate.value  // ← ADD DATE CHECK
       })
       
+      // Set hasExistingAttendance based on valid records for THIS date
       hasExistingAttendance.value = validAttendanceRecords.length > 0
       
-      console.log('Valid attendance records:', validAttendanceRecords.length)
-      console.log('Has existing attendance:', hasExistingAttendance.value)
+      console.log('Valid attendance records for this date:', validAttendanceRecords.length)
+      console.log('Has existing attendance for this date:', hasExistingAttendance.value)
       
       if (studentsData.length > 0) {
         classStudents.value = studentsData.map((s: any) => {
+          // Only find records for THIS date
           const existingRecord = validAttendanceRecords.find((a: any) => a.student_id === s.id)
           
           return {

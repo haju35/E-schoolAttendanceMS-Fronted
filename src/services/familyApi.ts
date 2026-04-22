@@ -20,7 +20,12 @@ export const familyApi = {
     getProfile: () => api.get('/family/profile'),
     updateProfile: (data: any) => api.put('/family/profile', data),
     changePassword: (data: any) => api.put('/family/change-password', data),
-    
+    uploadPhoto: (formData: FormData) => api.post('/family/profile/upload-photo', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }),
+
     // Leave Requests
     submitLeave: (data: any) => api.post('/family/leave-requests', data),
     getLeaveRequests: (params?: any) => api.get('/family/leave-requests', { params }),

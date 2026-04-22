@@ -21,16 +21,26 @@
               :class="isDark ? 'bg-indigo-600' : 'bg-gray-300'"
             >
               <span
-                class="w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300"
+                class="w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 flex items-center justify-center"
                 :class="isDark ? 'translate-x-7' : 'translate-x-0'"
-              ></span>
+              >
+                <span v-if="!isDark" class="text-yellow-500 text-xs"></span>
+                <span v-else class="text-gray-700 text-xs"></span>
+              </span>
             </button>
             
             <!-- User Menu -->
             <div class="relative">
               <button @click="toggleProfileMenu" class="flex items-center space-x-2 focus:outline-none">
-                <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                  <span class="text-indigo-600 dark:text-indigo-300 font-semibold">{{ teacherInitials }}</span>
+                <!-- Profile Photo -->
+                <div class="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                  <img 
+                    v-if="profilePhotoUrl" 
+                    :src="profilePhotoUrl" 
+                    alt="Profile"
+                    class="w-full h-full object-cover"
+                  />
+                  <span v-else class="text-indigo-600 dark:text-indigo-300 font-semibold">{{ teacherInitials }}</span>
                 </div>
                 <span class="text-gray-700 dark:text-gray-300 hidden md:block">{{ teacherName }}</span>
                 <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,6 +144,7 @@ import { useAuth } from '../../composables/useAuth'
 import api from '../../services/api'
 import { useToast } from 'vue-toastification'
 import { useDarkMode } from '@/composables/useDarkMode'
+import teacherApi from '../../services/teacherApi'
 
 const router = useRouter()
 const { user, logout: authLogout } = useAuth()
@@ -143,6 +154,7 @@ const showProfileMenu = ref(false)
 const classInfo = ref<any>(null)
 const { isDark, toggleDark } = useDarkMode()
 const hasBothRoles = ref(false)
+const profilePhotoUrl = ref<string | null>(null)
 
 const teacherName = computed(() => user.value?.name || 'Teacher')
 const teacherInitials = computed(() => teacherName.value.charAt(0).toUpperCase())
@@ -153,6 +165,23 @@ const toggleSidebar = () => {
 
 const toggleProfileMenu = () => {
   showProfileMenu.value = !showProfileMenu.value
+}
+
+// Fetch profile photo
+const fetchProfilePhoto = async () => {
+  try {
+    const response = await teacherApi.getProfile()
+    if (response.data.success && response.data.data.user?.photo) {
+      const photo = response.data.data.user.photo
+      if (photo.startsWith('http')) {
+        profilePhotoUrl.value = photo
+      } else {
+        profilePhotoUrl.value = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/storage/${photo}`
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching profile photo:', error)
+  }
 }
 
 const fetchClassInfo = async () => {
@@ -191,5 +220,6 @@ const logout = () => {
 onMounted(() => {
   fetchClassInfo()
   checkBothRoles()
+  fetchProfilePhoto()
 })
 </script>

@@ -12,6 +12,9 @@ export const teacherApi = {
             'Content-Type': 'multipart/form-data'
         }
     }),
+
+    getStudentDetails: (studentId: number) => api.get(`/teacher/students/${studentId}`),
+    
     // ADD THIS METHOD
     changePassword: (data: any) => api.post('/teacher/profile/change-password', data),
     

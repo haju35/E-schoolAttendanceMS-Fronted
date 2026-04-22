@@ -12,18 +12,18 @@
 
     <div v-else-if="profile">
       <!-- Profile Header with Photo Upload -->
-      <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow p-6 mb-6 text-white">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
         <div class="flex items-center space-x-4">
           <!-- Profile Photo with Upload -->
           <div class="relative group">
-            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center overflow-hidden">
+            <div class="w-24 h-24 rounded-full overflow-hidden bg-indigo-600 flex items-center justify-center shadow">
               <img 
                 v-if="profilePhotoUrl" 
                 :src="profilePhotoUrl" 
                 alt="Profile Photo"
                 class="w-full h-full object-cover"
               />
-              <span v-else class="text-3xl text-indigo-600 font-bold">{{ getInitials(profile.name) }}</span>
+              <span v-else class="text-3xl text-white font-bold">{{ getInitials(profile.name) }}</span>
             </div>
             
             <!-- Upload Overlay -->
@@ -46,9 +46,9 @@
           </div>
           
           <div>
-            <h2 class="text-2xl font-bold">{{ profile.name || 'Admin' }}</h2>
-            <p class="text-indigo-100">{{ profile.email || 'No email' }}</p>
-            <p class="text-sm text-indigo-200 mt-1">Administrator Account</p>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ profile.name || 'Admin' }}</h2>
+            <p class="text-gray-600 dark:text-gray-400">{{ profile.email || 'No email' }}</p>
+            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Administrator Account</p>
           </div>
         </div>
         

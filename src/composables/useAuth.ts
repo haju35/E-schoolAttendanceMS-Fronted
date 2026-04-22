@@ -27,13 +27,13 @@ export function useAuth() {
       const response = await api.post<ApiResponse<LoginResponse>>('/auth/login', credentials)
       
       if (response.data.success) {
-        const { access_token, user: userData, is_class_teacher: classTeacherStatus, subject_count} = response.data
+        const { access_token, user: userData, is_class_teacher: classTeacherStatus, subject_count } = response.data
 
         localStorage.removeItem('access_token')
         localStorage.removeItem('user')
         localStorage.removeItem('is_class_teacher')
-        localStorage.removeItem('dashboard_type') // Clear previous dashboard selection
-        localStorage.removeItem('subject_count') // Clear subject count
+        localStorage.removeItem('dashboard_type')
+        localStorage.removeItem('subject_count')
         
         token.value = access_token
         user.value = userData
@@ -63,13 +63,49 @@ export function useAuth() {
     }
   }
 
-  // New function to check if teacher has subject assignments
- const checkAndRedirect = async (role: string, isClassTeacherStatus?: boolean) => {
+  // NEW: Fetch user function to refresh user data
+  const fetchUser = async () => {
+    loading.value = true
+    try {
+      const token = localStorage.getItem('access_token')
+      if (!token) {
+        loading.value = false
+        return null
+      }
+      
+      const response = await api.get<ApiResponse<User>>('/auth/user')
+      
+      if (response.data.success && response.data.data) {
+        user.value = response.data.data
+        // Update localStorage
+        localStorage.setItem('user', JSON.stringify(response.data.data))
+        console.log('User fetched successfully:', user.value)
+        return user.value
+      }
+      
+      return null
+    } catch (error) {
+      console.error('Failed to fetch user:', error)
+      // Try to get from localStorage as fallback
+      const storedUser = localStorage.getItem('user')
+      if (storedUser) {
+        try {
+          user.value = JSON.parse(storedUser)
+          console.log('User loaded from localStorage:', user.value)
+          return user.value
+        } catch (e) {}
+      }
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const checkAndRedirect = async (role: string, isClassTeacherStatus?: boolean) => {
     console.log('=== checkAndRedirect called ===');
     console.log('Role:', role);
     console.log('isClassTeacherStatus:', isClassTeacherStatus);
     
-    // Only check for teachers
     if (role !== 'teacher') {
       console.log('Non-teacher role, redirecting...');
       const routes: Record<string, string> = {
@@ -81,24 +117,19 @@ export function useAuth() {
       return
     }
     
-    // For teachers, check if they have subject assignments
     if (isClassTeacherStatus) {
-      // Get subject count from localStorage (set during login)
       const subjectCount = parseInt(localStorage.getItem('subject_count') || '0')
       console.log('Subject count from localStorage:', subjectCount);
       
       if (subjectCount > 0) {
-        // Teacher has BOTH roles (homeroom AND subject teacher)
         console.log('Teacher has BOTH roles - redirecting to role selection');
         router.push('/role-selection')
       } else {
-        // Teacher is ONLY homeroom teacher
         console.log('Teacher is ONLY homeroom teacher - redirecting to homeroom dashboard');
         localStorage.setItem('dashboard_type', 'homeroom')
         router.push('/homeroom/dashboard')
       }
     } else {
-      // Teacher is NOT a class teacher, go to subject teacher dashboard
       console.log('Teacher is NOT a class teacher - redirecting to subject dashboard');
       localStorage.setItem('dashboard_type', 'subject')
       router.push('/teacher/dashboard')
@@ -133,7 +164,7 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const response = await axios.post<ApiResponse>('/auth/forgot-password', data)
+      const response = await api.post<ApiResponse>('/auth/forgot-password', data)
       
       if (response.data.success) {
         toast.success(response.data.message || 'Password reset link sent!')
@@ -154,7 +185,7 @@ export function useAuth() {
     loading.value = true
     
     try {
-      const response = await axios.post<ApiResponse>('/auth/reset-password', data)
+      const response = await api.post<ApiResponse>('/auth/reset-password', data)
       
       if (response.data.success) {
         toast.success('Password reset successful! Please login.')
@@ -195,7 +226,7 @@ export function useAuth() {
   
   const getCurrentUser = async () => {
     try {
-      const response = await axios.get<ApiResponse<User>>('/auth/user')
+      const response = await api.get<ApiResponse<User>>('/auth/user')
       
       if (response.data.success && response.data.data) {
         user.value = response.data.data
@@ -209,11 +240,25 @@ export function useAuth() {
     }
   }
   
-  // Keep redirectByRole for backward compatibility
   const redirectByRole = (role: string, isClassTeacherStatus?: boolean) => {
-    // Use the new function
     checkAndRedirect(role, isClassTeacherStatus)
   }
+  
+  // Load user from localStorage on initialization
+  const initializeUser = () => {
+    const storedUser = localStorage.getItem('user')
+    if (storedUser && !user.value) {
+      try {
+        user.value = JSON.parse(storedUser)
+        console.log('User initialized from localStorage:', user.value)
+      } catch (e) {
+        console.error('Failed to parse stored user:', e)
+      }
+    }
+  }
+  
+  // Call initialization
+  initializeUser()
   
   return { 
     user, 
@@ -227,6 +272,7 @@ export function useAuth() {
     resetPassword,
     logout,
     getCurrentUser,
+    fetchUser,
     redirectByRole
   }
 }

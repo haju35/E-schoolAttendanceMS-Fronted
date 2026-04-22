@@ -1,8 +1,8 @@
 <template>
   <div class="p-6">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">family Dashboard</h1>
-      <p class="text-gray-600">Welcome back, {{ parentName }}!</p>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Family Dashboard</h1>
+      <p class="text-gray-600 dark:text-gray-400">Welcome back, {{ parentName }}!</p>
     </div>
 
     <!-- Loading State -->
@@ -13,56 +13,56 @@
     <div v-else>
       <!-- Stats Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm">My Children</p>
-              <p class="text-2xl font-bold text-indigo-600">{{ stats.total_children }}</p>
+              <p class="text-gray-500 dark:text-gray-400 text-sm">My Children</p>
+              <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ stats.total_children }}</p>
             </div>
-            <div class="p-3 bg-indigo-100 rounded-full">
-              <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-indigo-100 dark:bg-indigo-900 rounded-full">
+              <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
               </svg>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm">Avg. Attendance</p>
-              <p class="text-2xl font-bold text-green-600">{{ stats.avg_attendance }}%</p>
+              <p class="text-gray-500 dark:text-gray-400 text-sm">Avg. Attendance</p>
+              <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ stats.avg_attendance }}%</p>
             </div>
-            <div class="p-3 bg-green-100 rounded-full">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-green-100 dark:bg-green-900 rounded-full">
+              <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm">Present Days</p>
-              <p class="text-2xl font-bold text-blue-600">{{ stats.total_present }}</p>
+              <p class="text-gray-500 dark:text-gray-400 text-sm">Present Days</p>
+              <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ stats.total_present }}</p>
             </div>
-            <div class="p-3 bg-blue-100 rounded-full">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
+              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
               </svg>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 hover:shadow-lg transition">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-gray-500 text-sm">Pending Leaves</p>
-              <p class="text-2xl font-bold text-purple-600">{{ stats.pending_leaves }}</p>
+              <p class="text-gray-500 dark:text-gray-400 text-sm">Pending Leaves</p>
+              <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ stats.pending_leaves }}</p>
             </div>
-            <div class="p-3 bg-purple-100 rounded-full">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+              <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
             </div>
@@ -71,86 +71,82 @@
       </div>
 
       <!-- My Children Section -->
-      <div class="bg-white rounded-lg shadow mb-6">
-        <div class="px-6 py-4 border-b">
-          <h2 class="text-lg font-semibold">My Children</h2>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-white">My Children</h2>
         </div>
-        <div v-if="children.length === 0" class="p-8 text-center text-gray-500">
-          <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div v-if="children.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+          <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
           </svg>
           <p>No children linked to your account</p>
           <p class="text-xs mt-2">Please contact the school administrator to link your children</p>
         </div>
-        <div v-else class="divide-y">
-          <div v-for="child in children" :key="child.id" class="p-4 hover:bg-gray-50">
+        <div v-else class="divide-y dark:divide-gray-700">
+          <div v-for="child in children" :key="child.id" class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div class="flex justify-between items-start mb-3">
               <div>
-                <h3 class="font-semibold text-gray-800 text-lg">{{ child.name }}</h3>
-                <p class="text-sm text-gray-500">{{ child.class_name }} - {{ child.section }}</p>
+                <h3 class="font-semibold text-gray-800 dark:text-white text-lg">{{ child.name }}</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">{{ child.class_name }} - {{ child.section }}</p>
               </div>
               <div class="text-right">
-                <p class="text-2xl font-bold text-indigo-600">{{ child.attendance_rate }}%</p>
-                <p class="text-xs text-gray-500">Attendance Rate</p>
+                <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{{ child.attendance_rate }}%</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">Attendance Rate</p>
               </div>
             </div>
             
             <!-- Stats Grid -->
             <div class="grid grid-cols-3 gap-4 mb-4">
-              <div class="text-center p-2 bg-green-50 rounded-lg">
-                <p class="text-xl font-bold text-green-600">{{ child.present_days }}</p>
-                <p class="text-xs text-gray-600">Present</p>
+              <div class="text-center p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ child.present_days }}</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400">Present</p>
               </div>
-              <div class="text-center p-2 bg-red-50 rounded-lg">
-                <p class="text-xl font-bold text-red-600">{{ child.absent_days }}</p>
-                <p class="text-xs text-gray-600">Absent</p>
+              <div class="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                <p class="text-xl font-bold text-red-600 dark:text-red-400">{{ child.absent_days }}</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400">Absent</p>
               </div>
-              <div class="text-center p-2 bg-yellow-50 rounded-lg">
-                <p class="text-xl font-bold text-yellow-600">{{ child.late_days }}</p>
-                <p class="text-xs text-gray-600">Late</p>
+              <div class="text-center p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                <p class="text-xl font-bold text-yellow-600 dark:text-yellow-400">{{ child.late_days }}</p>
+                <p class="text-xs text-gray-600 dark:text-gray-400">Late</p>
               </div>
             </div>
             
             <!-- Progress Bar -->
             <div class="mb-4">
-              <div class="bg-gray-200 rounded-full h-2">
+              <div class="bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                 <div class="bg-green-500 rounded-full h-2 transition-all duration-500" :style="{ width: child.attendance_rate + '%' }"></div>
               </div>
             </div>
-            
-           
-            
-
           </div>
         </div>
       </div>
 
       <!-- Recent Alerts Section -->
-      <div class="bg-white rounded-lg shadow">
-        <div class="px-6 py-4 border-b">
-          <h2 class="text-lg font-semibold">Recent Alerts</h2>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div class="px-6 py-4 border-b dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Recent Alerts</h2>
         </div>
-        <div v-if="recentAlerts.length === 0" class="p-8 text-center text-gray-500">
-          <svg class="mx-auto h-12 w-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div v-if="recentAlerts.length === 0" class="p-8 text-center text-gray-500 dark:text-gray-400">
+          <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
           </svg>
           <p>No recent alerts</p>
           <p class="text-xs mt-2">All your children have perfect attendance!</p>
         </div>
-        <div v-else class="divide-y">
-          <div v-for="alert in recentAlerts" :key="alert.id" class="p-4 hover:bg-gray-50">
+        <div v-else class="divide-y dark:divide-gray-700">
+          <div v-for="alert in recentAlerts" :key="alert.id" class="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div class="flex items-start space-x-3">
-              <div :class="alert.type === 'absent' ? 'bg-red-100' : 'bg-yellow-100'" class="p-2 rounded-full">
-                <svg v-if="alert.type === 'absent'" class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div :class="alert.type === 'absent' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-yellow-100 dark:bg-yellow-900/30'" class="p-2 rounded-full">
+                <svg v-if="alert.type === 'absent'" class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                <svg v-else class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg v-else class="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
               <div class="flex-1">
-                <p class="text-sm font-medium text-gray-900">{{ alert.message }}</p>
-                <p class="text-xs text-gray-500 mt-1">{{ formatDate(alert.created_at) }}</p>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ alert.message }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ formatDate(alert.created_at) }}</p>
               </div>
             </div>
           </div>
@@ -179,7 +175,7 @@ const stats = ref({
   pending_leaves: 0
 })
 
-const parentName = computed(() => user.value?.name || 'family')
+const parentName = computed(() => user.value?.name || 'Family')
 
 const formatDate = (date: string) => {
   const d = new Date(date)
@@ -202,7 +198,6 @@ const fetchDashboardData = async () => {
     const response = await familyApi.getDashboard()
     console.log('Full API Response:', response.data)
     
-    // Check the response structure
     let dashboardData = response.data.data || response.data
     
     console.log('Dashboard data structure:', dashboardData)
@@ -235,17 +230,6 @@ const fetchDashboardData = async () => {
   } finally {
     loading.value = false
   }
-}
-
-const viewDetails = (child: any) => {
-  router.push(`/family/attendance/${child.id}`)
-}
-
-const submitLeave = (child: any) => {
-  router.push({
-    path: '/family/leave',
-    query: { child_id: child.id, child_name: child.name }
-  })
 }
 
 onMounted(() => {

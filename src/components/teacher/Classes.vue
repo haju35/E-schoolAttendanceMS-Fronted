@@ -1,72 +1,62 @@
 <template>
   <div class="p-6">
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">My Classes</h1>
-      <p class="text-gray-600">View and manage your assigned classes</p>
+    <h1 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">My Classes</h1>
+
+    <div v-if="loading" class="flex justify-center py-20">
+      <div class="animate-spin h-10 w-10 border-b-2 border-indigo-600 rounded-full"></div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div 
-        v-for="classItem in assignedClasses" 
-        :key="classItem.id + '-' + classItem.section_id"
-        class="bg-white rounded-lg shadow overflow-hidden"
-      >
-        <div class="bg-gradient-to-r from-indigo-500 to-blue-500 p-4 text-white">
-          <h3 class="text-xl font-bold">
-            {{ classItem.class_name }} - {{ classItem.section_name }}
-          </h3>
-          <p class="text-sm opacity-90">
-            Room: {{ classItem.room_number || 'Not assigned' }}
-          </p>
-        </div>
-        
-        <div class="p-4">
-          <div class="space-y-2">
-            <div class="flex justify-between">
-              <span class="text-gray-600">Total Students:</span>
-              <span class="font-semibold">{{ classItem.total_students }}</span>
-            </div>
+    <div v-else-if="errorMessage" class="bg-white dark:bg-gray-800 p-10 text-center rounded shadow">
+      <p class="text-red-500 dark:text-red-400">{{ errorMessage }}</p>
+    </div>
 
-            <div class="flex justify-between">
-              <span class="text-gray-600">Subjects:</span>
-              <span class="font-semibold">
-                {{ classItem.subjects?.join(', ') || 'No subjects' }}
-              </span>
-            </div>
+    <div v-else-if="assignedClasses.length === 0" class="bg-white dark:bg-gray-800 p-10 text-center rounded shadow">
+      <p class="text-gray-500 dark:text-gray-400">No classes assigned yet</p>
+    </div>
 
-            <div class="flex justify-between">
-              <span class="text-gray-600">Today's Attendance:</span>
-              <span 
-                class="font-semibold"
-                :class="getAttendanceColor(classItem.today_attendance)"
-              >
-                {{ classItem.today_attendance || 0 }}%
-              </span>
-            </div>
-          </div>
-          
-          <div class="mt-4 flex space-x-2">
-            <button 
-              @click="viewStudents(classItem)" 
-              class="flex-1 bg-indigo-600 text-white px-3 py-2 rounded hover:bg-indigo-700 text-sm"
-            >
-              View Students
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- EMPTY STATE -->
-      <div 
-        v-if="assignedClasses.length === 0 && !loading" 
-        class="col-span-full text-center py-12 bg-white rounded-lg shadow"
-      >
-        <p class="text-gray-500">No classes assigned yet</p>
-      </div>
-
-      <!-- LOADING -->
-      <div v-if="loading" class="col-span-full flex justify-center py-12">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600"></div>
+    <div v-else class="bg-white dark:bg-gray-800 rounded shadow overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Class</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Section</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Students</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Today's Attendance</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Subjects</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="classItem in assignedClasses" :key="classItem.id + '-' + classItem.section_id" class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+              <td class="p-3 font-medium text-gray-900 dark:text-white">{{ classItem.class_name }}</td>
+              <td class="p-3 text-gray-700 dark:text-gray-300">{{ classItem.section_name }}</td>
+              <td class="p-3 text-gray-700 dark:text-gray-300">{{ classItem.total_students }}</td>
+              <td class="p-3">
+                <span 
+                  class="px-2 py-1 rounded text-xs font-medium"
+                  :class="getAttendanceColor(classItem.today_attendance)"
+                >
+                  {{ classItem.today_attendance || 0 }}%
+                </span>
+              </td>
+              <td class="p-3 text-gray-700 dark:text-gray-300 max-w-[200px] truncate">
+                <span :title="classItem.subjects?.join(', ')">
+                  {{ classItem.subjects?.slice(0, 2).join(', ') || 'No subjects' }}
+                  <span v-if="classItem.subjects?.length > 2" class="text-gray-500"> +{{ classItem.subjects.length - 2 }}</span>
+                </span>
+              </td>
+              <td class="p-3">
+                <button 
+                  @click="viewStudents(classItem)" 
+                  class="text-indigo-600 dark:text-indigo-400 hover:underline text-sm"
+                >
+                  View Students
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -83,9 +73,11 @@ const toast = useToast()
 
 const assignedClasses = ref<any[]>([])
 const loading = ref(false)
+const errorMessage = ref<string>('')
 
 const fetchAssignedClasses = async () => {
   loading.value = true
+  errorMessage.value = ''
 
   try {
     const response = await api.get('/teacher/classes')
@@ -94,36 +86,41 @@ const fetchAssignedClasses = async () => {
       const classes = response.data.data || []
 
       assignedClasses.value = classes.flatMap((cls: any) => {
-        return cls.sections.map((sec: any) => ({
+        return (cls.sections || []).map((sec: any) => ({
           id: cls.class.id,
           class_name: cls.class.name,
           section_id: sec.section.id,
           section_name: sec.section.name,
-          room_number: sec.room_number || null,
           total_students: sec.total_students || 0,
           today_attendance: sec.today_attendance || 0,
           subjects: sec.subjects?.map((s: any) => s.name) || []
         }))
       })
+      
+      if (assignedClasses.value.length === 0) {
+        errorMessage.value = 'No classes assigned yet'
+      }
+    } else {
+      errorMessage.value = response.data.message || 'Failed to load classes'
     }
 
-  } catch (error) {
-    console.error('Error fetching classes:', error)
-    toast.error('Failed to load classes')
+  } catch (err: any) {
+    console.error('Error fetching classes:', err)
+    errorMessage.value = err.response?.data?.message || 'Failed to load classes'
+    toast.error(errorMessage.value)
   } finally {
     loading.value = false
   }
 }
 
 const viewStudents = (classItem: any) => {
-  // Navigate to Students page with class_id & section_id
   router.push(`/teacher/students/${classItem.id}?section_id=${classItem.section_id}`)
 }
 
 const getAttendanceColor = (percentage: number) => {
-  if (percentage >= 90) return 'text-green-600'
-  if (percentage >= 75) return 'text-yellow-600'
-  return 'text-red-600'
+  if (percentage >= 90) return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200'
+  if (percentage >= 75) return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200'
+  return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200'
 }
 
 onMounted(() => {

@@ -7,6 +7,7 @@ export const studentApi = {
     // Profile
     getProfile: () => api.get('/student/profile'),
     updateProfile: (data: any) => api.put('/student/profile', data),
+    changePassword: (data) => api.post('/student/profile/change-password', data),
     
     // Attendance
     getAttendance: (params?: any) => api.get('/student/attendance', { params }),

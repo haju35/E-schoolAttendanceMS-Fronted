@@ -103,6 +103,12 @@ const routes: RouteRecordRaw[] = [
         name: 'admin.class-teachers', 
         component: ClassTeacherAssignment,
         meta: { title: 'Class Teacher Assignment' }
+      },
+      {
+        path: '/admin/users',
+        name: 'Admin.Users',
+        component: AdminUsers,
+        meta: {title: 'User Management'}
       }
     ]
   },
@@ -121,6 +127,11 @@ const routes: RouteRecordRaw[] = [
       { path: 'students/:id?', name: 'teacher.students', component: TeacherStudents, meta: { title: 'My Students' } },
       { path: 'reports', name: 'teacher.reports', component: TeacherReports, meta: { title: 'Reports' } },
       { path: 'profile', name: 'teacher.profile', component: TeacherProfile, meta: { title: 'Profile' } },
+       { 
+      path: 'student/:id', 
+      name: 'teacher.student-detail', 
+      component: () => import('@/components/teacher/StudentDetail.vue'), 
+      meta: { title: 'Student Details' } },
     ]
   },  
   

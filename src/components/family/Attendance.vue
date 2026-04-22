@@ -1,17 +1,17 @@
 <template>
   <div class="p-6">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Attendance History</h1>
-      <p class="text-gray-600">View detailed attendance records for your children</p>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Attendance History</h1>
+      <p class="text-gray-600 dark:text-gray-400">View detailed attendance records for your children</p>
     </div>
 
     <!-- Child Selector -->
-    <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
       <div class="flex flex-wrap gap-2">
         <button v-for="child in children" :key="child.id"
                 @click="selectChild(child)"
                 class="px-6 py-2 rounded-lg font-medium transition"
-                :class="selectedChild?.id === child.id ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">
+                :class="selectedChild?.id === child.id ? 'bg-indigo-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'">
           {{ child.name }}
         </button>
       </div>
@@ -20,30 +20,30 @@
     <div v-if="selectedChild">
       <!-- Summary Cards -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white rounded-lg shadow p-4">
-          <p class="text-sm text-gray-500">Attendance Rate</p>
-          <p class="text-2xl font-bold text-green-600">{{ selectedChild.attendance_rate || 0 }}%</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-lg transition">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Attendance Rate</p>
+          <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ selectedChild.attendance_rate || 0 }}%</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-          <p class="text-sm text-gray-500">Present Days</p>
-          <p class="text-2xl font-bold text-green-600">{{ selectedChild.present_days || 0 }}</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-lg transition">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Present Days</p>
+          <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ selectedChild.present_days || 0 }}</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-          <p class="text-sm text-gray-500">Absent Days</p>
-          <p class="text-2xl font-bold text-red-600">{{ selectedChild.absent_days || 0 }}</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-lg transition">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Absent Days</p>
+          <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ selectedChild.absent_days || 0 }}</p>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-          <p class="text-sm text-gray-500">Late Days</p>
-          <p class="text-2xl font-bold text-yellow-600">{{ selectedChild.late_days || 0 }}</p>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-lg transition">
+          <p class="text-sm text-gray-500 dark:text-gray-400">Late Days</p>
+          <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ selectedChild.late_days || 0 }}</p>
         </div>
       </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-lg shadow p-4 mb-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Month</label>
-            <select v-model="filters.month" class="w-full px-3 py-2 border rounded-md" @change="loadAttendance">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Month</label>
+            <select v-model="filters.month" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" @change="loadAttendance">
               <option v-for="month in months" :key="month.value" :value="month.value">
                 {{ month.name }}
               </option>
@@ -51,8 +51,8 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Year</label>
-            <select v-model="filters.year" class="w-full px-3 py-2 border rounded-md" @change="loadAttendance">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+            <select v-model="filters.year" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none" @change="loadAttendance">
               <option v-for="year in years" :key="year" :value="year">{{ year }}</option>
             </select>
           </div>
@@ -60,33 +60,33 @@
       </div>
 
       <!-- Detailed Records -->
-      <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b">
-          <h2 class="text-lg font-semibold">Detailed Records</h2>
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-800 dark:text-white">Detailed Records</h2>
         </div>
         <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead class="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Remarks</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Subject</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Remarks</th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="record in attendanceRecords" :key="record.id">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ record.date }}</td>
+            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              <tr v-for="record in attendanceRecords" :key="record.id" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ record.date }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span :class="getStatusClass(record.status)" class="px-2 py-1 text-xs rounded-full">
                     {{ record.status?.toUpperCase() }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ record.subject_name || 'N/A' }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ record.remarks || '-' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ record.subject_name || 'N/A' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ record.remarks || '-' }}</td>
               </tr>
               <tr v-if="attendanceRecords.length === 0">
-                <td colspan="5" class="px-6 py-8 text-center text-gray-500">No attendance records found</td>
+                <td colspan="5" class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No attendance records found</td>
               </tr>
             </tbody>
           </table>
@@ -132,11 +132,11 @@ const generateYears = () => {
 
 const getStatusClass = (status) => {
   const classes = {
-    present: 'bg-green-100 text-green-800',
-    absent: 'bg-red-100 text-red-800',
-    late: 'bg-yellow-100 text-yellow-800'
+    present: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    absent: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+    late: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
   }
-  return classes[status] || 'bg-gray-100 text-gray-800'
+  return classes[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
 }
 
 const fetchChildren = async () => {
