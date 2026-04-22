@@ -7,6 +7,13 @@ export const teacherApi = {
     // Profile
     getProfile: () => api.get('/teacher/profile'),
     updateProfile: (data: any) => api.put('/teacher/profile', data),
+    uploadPhoto: (formData: any) => api.post('/teacher/profile/photo', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }),
+    // ADD THIS METHOD
+    changePassword: (data: any) => api.post('/teacher/profile/change-password', data),
     
     // Classes
     getClasses: () => api.get('/teacher/classes'),
@@ -46,12 +53,6 @@ export const teacherApi = {
     getClassTeacherClasses: () => api.get('/teacher/class-teacher/classes'),
     
     checkClassTeacherStatus: () => api.get('/teacher/class-teacher/status'),
-
-    uploadPhoto: (formData) => api.post('/teacher/profile/photo', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data'
-        }
-    }),
 };
 
 export default teacherApi;

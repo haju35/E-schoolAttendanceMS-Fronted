@@ -86,7 +86,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'teachers', name: 'admin.teachers', component: AdminTeachers, meta: { title: 'Teachers' } },
       { path: 'classes', name: 'admin.classes', component: AdminClasses, meta: { title: 'Classes' } },
       { path: 'reports', name: 'admin.reports', component: AdminReports, meta: { title: 'Reports' } },
-      { path: 'profiles', name: 'admin.profile', component: AdminProfiles, meta: { title: 'profile' } },
+      { path: 'profile', name: 'admin.profile', component: AdminProfiles, meta: { title: 'profile' } },
       {
         path: 'teacher-assignments',
         name: 'admin.teacher-assignments',

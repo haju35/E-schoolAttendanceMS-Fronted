@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <div>
-        <h2 class="text-2xl font-bold text-gray-800">Roles & Permissions</h2>
-        <p class="text-gray-600 mt-1">Manage user roles and their permissions</p>
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white">Roles & Permissions</h2>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Manage user roles and their permissions</p>
       </div>
       <button
         @click="refreshData"
@@ -17,14 +17,14 @@
     </div>
 
     <!-- Create Role Card -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Create New Role</h3>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8 border border-gray-200 dark:border-gray-700">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Create New Role</h3>
       <div class="flex gap-3">
         <input
           v-model="newRoleName"
           type="text"
           placeholder="Enter role name (e.g., librarian, counselor)"
-          class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          class="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
           @keyup.enter="createRole"
         />
         <button
@@ -40,7 +40,7 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="text-center py-12">
       <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p class="mt-4 text-gray-600">Loading roles and permissions...</p>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">Loading roles and permissions...</p>
     </div>
 
     <!-- Roles List -->
@@ -48,16 +48,16 @@
       <div
         v-for="role in roles"
         :key="role.id"
-        class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+        class="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow"
       >
         <!-- Role Header -->
-        <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b flex justify-between items-center">
+        <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 px-6 py-4 border-b dark:border-gray-700 flex justify-between items-center">
           <div>
-            <h3 class="text-xl font-semibold text-gray-800">
+            <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
               {{ formatRoleName(role.name) }}
-              <span class="text-sm font-normal text-gray-500 ml-2">(ID: {{ role.id }})</span>
+              <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">(ID: {{ role.id }})</span>
             </h3>
-            <p class="text-sm text-gray-600 mt-1">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
               {{ role.permissions?.length || 0 }} permission(s) assigned
             </p>
           </div>
@@ -65,14 +65,14 @@
             <button
               @click="toggleDropdown(role.id)"
               class="px-4 py-2 rounded-lg transition-colors"
-              :class="openRoleId === role.id ? 'bg-gray-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+              :class="openRoleId === role.id ? 'bg-gray-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'"
             >
               {{ openRoleId === role.id ? 'Close' : 'Manage Permissions' }}
             </button>
             <button
               v-if="role.name !== 'admin'"
               @click="deleteRole(role)"
-              class="px-4 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+              class="px-4 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
             >
               Delete
             </button>
@@ -88,7 +88,7 @@
                 v-model="searchTerm"
                 type="text"
                 placeholder="Search permissions..."
-                class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
             <div class="flex gap-2">
@@ -108,24 +108,24 @@
           </div>
 
           <!-- Permissions Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-6 max-h-96 overflow-y-auto border rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50 dark:border-gray-600">
             <label
               v-for="perm in filteredPermissions"
               :key="perm.id"
-              class="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
+              class="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-white dark:hover:bg-gray-600 transition-colors"
             >
               <input
                 type="checkbox"
                 :value="perm.id"
                 v-model="selectedPermissions[role.id]"
-                class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                class="w-4 h-4 text-blue-600 rounded border-gray-300 dark:border-gray-600 focus:ring-blue-500 dark:bg-gray-700"
               />
-              <span class="text-gray-700 text-sm">{{ formatPermissionName(perm.name) }}</span>
+              <span class="text-gray-700 dark:text-gray-300 text-sm">{{ formatPermissionName(perm.name) }}</span>
             </label>
           </div>
 
           <!-- Action Buttons -->
-          <div class="flex gap-3 pt-4 border-t">
+          <div class="flex gap-3 pt-4 border-t dark:border-gray-700">
             <button
               @click="updateRolePermissions(role)"
               :disabled="isUpdating"
@@ -146,11 +146,11 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else class="text-center py-12 bg-white rounded-lg shadow border border-gray-200">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div v-else class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+      <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
       </svg>
-      <p class="mt-4 text-gray-600">No roles found. Create your first role above!</p>
+      <p class="mt-4 text-gray-600 dark:text-gray-400">No roles found. Create your first role above!</p>
     </div>
   </div>
 </template>
@@ -221,7 +221,6 @@ const fetchData = async () => {
       permissions: permissions.value.length 
     })
     
-    toast.success('Data loaded successfully')
   } catch (error) {
     console.error('Fetch error:', error)
     toast.error(error.response?.data?.message || 'Failed to load roles and permissions')

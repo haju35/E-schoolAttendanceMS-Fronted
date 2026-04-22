@@ -9,39 +9,39 @@
     </div>
 
     <!-- Search -->
-    <div class="bg-white rounded-lg shadow mb-6 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
       <input type="text" v-model="filters.search" @input="fetchFamilies" placeholder="Search by name, email, phone..." 
-             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400">
     </div>
 
     <!-- Families Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parent/Guardian</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Occupation</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Children</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Family</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden md:table-cell">Occupation</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Children</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="family in families" :key="family.id" class="hover:bg-gray-50">
+            <tr v-for="family in families" :key="family.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-6 py-4">
                 <div>
-                  <div class="font-medium text-gray-900">{{ family.user?.name }}</div>
-                  <div class="text-sm text-gray-500">{{ family.user?.email }}</div>
-                  <div class="text-sm text-gray-400">{{ family.user?.phone }}</div>
+                  <div class="font-medium text-gray-900 dark:text-white">{{ family.user?.name }}</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">{{ family.user?.email }}</div>
+                  <div class="text-sm text-gray-400 dark:text-gray-500">{{ family.user?.phone }}</div>
                 </div>
               </td>
-              <td class="px-6 py-4 hidden md:table-cell">{{ family.occupation || 'N/A' }}</td>
+              <td class="px-6 py-4 hidden md:table-cell text-gray-600 dark:text-gray-400">{{ family.occupation || 'N/A' }}</td>
               <td class="px-6 py-4">
                 <div class="space-y-1">
-                  <div v-for="student in family.students" :key="student.id" class="text-sm">
+                  <div v-for="student in family.students" :key="student.id" class="text-sm text-gray-600 dark:text-gray-400">
                     {{ student.user?.name }} ({{ student.admission_number }})
                   </div>
-                  <div v-if="!family.students?.length" class="text-sm text-gray-400">No children linked</div>
+                  <div v-if="!family.students?.length" class="text-sm text-gray-400 dark:text-gray-500">No children linked</div>
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
@@ -73,10 +73,10 @@
 
     <!-- Add/Edit Family Modal -->
     <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto z-50" @click.self="closeModal">
-      <div class="relative top-20 mx-auto p-5 w-full max-w-2xl bg-white rounded-lg shadow">
+      <div class="relative top-20 mx-auto p-5 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow">
         <div class="flex justify-between items-center mb-4 pb-2 border-b">
           <h3 class="text-xl font-semibold">{{ editingFamily ? 'Edit Family' : 'Add New Family' }}</h3>
-          <button @click="closeModal" class="text-gray-400 hover:text-gray-600">✕</button>
+          <button @click="closeModal" class="text-gray-400 hover:text-gray-600 dark:text-gray-400">✕</button>
         </div>
         
         <form @submit.prevent="saveFamily" class="space-y-4">
@@ -102,7 +102,7 @@
           </div>
           
           <div class="flex justify-end space-x-3 pt-4 border-t">
-            <button type="button" @click="closeModal" class="px-4 py-2 bg-gray-300 rounded-md">Cancel</button>
+            <button type="button" @click="closeModal" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md">Cancel</button>
             <button type="submit" :disabled="submitting" class="px-4 py-2 bg-blue-600 text-white rounded-md disabled:opacity-50">
               {{ submitting ? (editingFamily ? 'Updating...' : 'Saving...') : (editingFamily ? 'Update' : 'Create') }}
             </button>

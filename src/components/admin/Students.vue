@@ -2,7 +2,7 @@
   <div class="p-6">
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-      <h2 class="text-2xl font-semibold text-gray-800">Students</h2>
+      <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Students</h2>
 
       <button
         @click="showModal = true"
@@ -13,16 +13,16 @@
     </div>
 
     <!-- Import Section -->
-    <div class="mb-6 p-4 border rounded-lg bg-gray-50">
-      <h3 class="font-semibold mb-2">Bulk Import Students</h3>
+    <div class="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+      <h3 class="font-semibold mb-2 text-gray-800 dark:text-white">Bulk Import Students</h3>
       <div class="flex flex-col md:flex-row gap-3">
         <div class="flex-1">
-          <label class="block text-sm mb-1">Upload Excel/CSV File</label>
+          <label class="block text-sm mb-1 text-gray-700 dark:text-gray-300">Upload Excel/CSV File</label>
           <input 
             type="file" 
             @change="handleFileUpload" 
             accept=".xlsx,.csv,.xls"
-            class="w-full border rounded px-3 py-2"
+            class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           />
         </div>
         <div class="flex gap-2 items-end">
@@ -50,7 +50,7 @@
         @input="fetchStudents"
         type="text"
         placeholder="Search student..."
-        class="flex-1 md:w-1/3 border border-gray-300 px-4 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+        class="flex-1 md:w-1/3 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:text-white"
       />
       <button
         @click="deleteSelected"
@@ -62,26 +62,26 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-100">
+          <thead class="bg-gray-100 dark:bg-gray-700">
             <tr>
               <th class="p-3 w-12">
                 <input 
                   type="checkbox" 
                   @change="toggleAll" 
                   :checked="isAllSelected"
-                  class="rounded border-gray-300"
+                  class="rounded border-gray-300 dark:border-gray-600"
                 />
               </th>
-              <th class="p-3 text-left">#</th>
-              <th class="p-3 text-left">Name</th>
-              <th class="p-3 text-left">Email</th>
-              <th class="p-3 text-left">Admission No</th>
-              <th class="p-3 text-left">Class</th>
-              <th class="p-3 text-left">Section</th>
-              <th class="p-3 text-right">Actions</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">#</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Name</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Email</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Admission No</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Class</th>
+              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Section</th>
+              <th class="p-3 text-right text-gray-600 dark:text-gray-300">Actions</th>
             </tr>
           </thead>
 
@@ -89,44 +89,44 @@
             <tr
               v-for="(student, index) in students.data"
               :key="student.id"
-              class="border-t hover:bg-gray-50 transition"
+              class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
             >
               <td class="p-3">
                 <input 
                   type="checkbox" 
                   :value="student.id"
                   v-model="selectedStudents"
-                  class="rounded border-gray-300"
+                  class="rounded border-gray-300 dark:border-gray-600"
                 />
               </td>
-              <td class="p-3">{{ index + 1 }}</td>
-              <td class="p-3">{{ student.user?.name }}</td>
-              <td class="p-3">{{ student.user?.email }}</td>
-              <td class="p-3">{{ student.admission_number }}</td>
-              <td class="p-3">{{ student.currentClass?.name }}</td>
-              <td class="p-3">{{ student.currentSection?.name }}</td>
+              <td class="p-3 text-gray-700 dark:text-gray-300">{{ index + 1 }}</td>
+              <td class="p-3 text-gray-800 dark:text-white">{{ student.user?.name }}</td>
+              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.user?.email }}</td>
+              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.admission_number }}</td>
+              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.currentClass?.name }}</td>
+              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.currentSection?.name }}</td>
               <td class="p-3 text-right space-x-2 whitespace-nowrap">
                 <button
                   @click="editStudent(student)"
-                  class="text-yellow-600 hover:text-yellow-800 transition" title="edit"
+                  class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300 transition" title="edit"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
                 </button>
                 <button
                   @click="deleteStudent(student.id)"
-                  class="text-red-600 hover:text-red-800 transition" title="delete"
+                  class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition" title="delete"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
                 </button>
               </td>
             </tr>
 
             <tr v-if="!students.data || students.data.length === 0">
-              <td colspan="8" class="text-center p-4 text-gray-500">
+              <td colspan="8" class="text-center p-4 text-gray-500 dark:text-gray-400">
                 No students found.
               </td>
             </tr>
@@ -137,22 +137,22 @@
       <!-- Pagination -->
       <div
         v-if="students.meta && students.meta.last_page > 1"
-        class="mt-4 flex justify-center items-center space-x-2 p-4 border-t"
+        class="mt-4 flex justify-center items-center space-x-2 p-4 border-t dark:border-gray-700"
       >
         <button
-          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 transition"
+          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300 transition"
           :disabled="students.meta.current_page === 1"
           @click="fetchStudents(students.meta.current_page - 1)"
         >
           Previous
         </button>
 
-        <span class="px-3 py-1">
+        <span class="px-3 py-1 text-gray-700 dark:text-gray-300">
           Page {{ students.meta.current_page }} of {{ students.meta.last_page }}
         </span>
 
         <button
-          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 transition"
+          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300 transition"
           :disabled="students.meta.current_page === students.meta.last_page"
           @click="fetchStudents(students.meta.current_page + 1)"
         >
@@ -168,85 +168,85 @@
       @click.self="showModal = false"
     >
       <div
-        class="bg-white w-full max-w-2xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]"
+        class="bg-white dark:bg-gray-800 w-full max-w-2xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]"
       >
-        <h3 class="text-xl font-semibold mb-4 text-gray-800">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
           {{ editingStudent ? 'Edit Student' : 'Add Student' }}
         </h3>
 
         <form @submit.prevent="saveStudent" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm mb-1 font-medium">Name *</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Name *</label>
               <input
                 v-model="form.name"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Email *</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Email *</label>
               <input
                 v-model="form.email"
                 type="email"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Phone</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Phone</label>
               <input
                 v-model="form.phone"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Address</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Address</label>
               <input
                 v-model="form.address"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Admission Number *</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Admission Number *</label>
               <input
                 v-model="form.admission_number"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Roll Number</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Roll Number</label>
               <input
                 v-model="form.roll_number"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Date of Birth</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
               <input
                 v-model="form.date_of_birth"
                 type="date"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Gender</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Gender</label>
               <select
                 v-model="form.gender"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               >
                 <option value="female">Female</option>
                 <option value="male">Male</option>
@@ -254,10 +254,10 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Class *</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Class *</label>
               <select
                 v-model="form.current_class_id"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 required
               >
                 <option value="">Select Class</option>
@@ -268,11 +268,11 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Section *</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Section *</label>
               <select
                 v-model="form.current_section_id"
                 :disabled="!form.current_class_id"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50"
                 required
               >
                 <option value="">Select Section</option>
@@ -283,20 +283,20 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium">Admission Date</label>
+              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Admission Date</label>
               <input
                 v-model="form.admission_date"
                 type="date"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none"
+                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
           </div>
 
-          <div class="flex justify-end space-x-2 mt-4 pt-4 border-t">
+          <div class="flex justify-end space-x-2 mt-4 pt-4 border-t dark:border-gray-700">
             <button
               type="button"
               @click="closeModal"
-              class="px-4 py-2 border rounded hover:bg-gray-100 transition"
+              class="px-4 py-2 border rounded hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition"
             >
               Cancel
             </button>
@@ -720,5 +720,20 @@ onMounted(() => {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
 }
 </style>

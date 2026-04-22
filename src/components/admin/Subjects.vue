@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Subjects Management</h1>
-        <p class="text-gray-600 mt-1">Manage school subjects and their class assignments</p>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Subjects Management</h1>
+        <p class="text-gray-600 mt-1 dark:text-gray-400">Manage school subjects and their class assignments</p>
       </div>
       <button 
         @click="showModal = true"
@@ -17,24 +17,24 @@
     </div>
 
     <!-- Subjects Table -->
-    <div class="bg-white shadow rounded-lg overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
-          <thead class="bg-gray-100">
+          <thead class="bg-gray-100 dark:bg-gray-700">
             <tr>
-              <th class="p-4 text-left font-semibold text-gray-700">Name</th>
-              <th class="p-4 text-left font-semibold text-gray-700">Code</th>
-              <th class="p-4 text-left font-semibold text-gray-700">Created At</th>
-              <th class="p-4 text-right font-semibold text-gray-700">Actions</th>
+              <th class="p-4 text-left font-semibold text-gray-700 dark:text-gray-300">Name</th>
+              <th class="p-4 text-left font-semibold text-gray-700 dark:text-gray-300">Code</th>
+              <th class="p-4 text-left font-semibold text-gray-700 dark:text-gray-300">Created At</th>
+              <th class="p-4 text-right font-semibold text-gray-700 dark:text-gray-300">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="s in subjects" :key="s.id" class="border-t hover:bg-gray-50 transition">
-              <td class="p-4 font-medium text-gray-900">{{ s.name ?? '-' }}</td>
+              <td class="p-4 font-medium text-gray-900 dark:text-white">{{ s.name ?? '-' }}</td>
               <td class="p-4">
-                <span class="px-2 py-1 bg-gray-100 rounded text-xs font-mono">{{ s.code ?? '-' }}</span>
+                <span class="px-2 py-1 bg-gray-100 dark:bg-gray-600 rounded text-xs font-mono text-gray-900 dark:text-white">{{ s.code ?? '-' }}</span>
               </td>
-              <td class="p-4 text-sm text-gray-500">{{ formatDate(s.created_at) }}</td>
+              <td class="p-4 text-sm text-gray-500 dark:text-gray-400 ">{{ formatDate(s.created_at) }}</td>
               <td class="p-4 text-right">
                 <button 
                   @click="deleteSubject(s.id)"
@@ -82,7 +82,7 @@
               class="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
               required 
             />
-            <p class="text-xs text-gray-500 mt-1">Example: MATH101, SCI202, ENG101</p>
+            <p class="text-xs text-gray-500 mt-1">MATH101, SCI202, ENG101</p>
           </div>
 
           <div class="flex justify-end space-x-3 mt-6">
