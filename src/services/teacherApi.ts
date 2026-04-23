@@ -42,8 +42,6 @@ export const teacherApi = {
     // Reports
     getAttendanceReport: (params: any) => api.get('/teacher/reports/attendance', { params }),
     
-    // Student Details
-    getStudentDetails: (studentId: number) => api.get(`/teacher/students/${studentId}`),
 
     getClassTeacherDashboard: () => api.get('/teacher/class-teacher/dashboard'),
 

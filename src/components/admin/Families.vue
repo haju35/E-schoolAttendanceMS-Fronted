@@ -89,7 +89,6 @@
             <div><label class="block text-sm font-medium mb-1">Emergency Contact</label><input type="tel" v-model="form.emergency_contact" class="w-full px-3 py-2 border rounded-md"></div>
             <div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Address</label><textarea v-model="form.address" rows="2" class="w-full px-3 py-2 border rounded-md"></textarea></div>
             
-            <!-- Dynamic Students from Backend -->
             <div class="md:col-span-2">
               <label class="block text-sm font-medium mb-1">Link Children (Select students)</label>
               <select v-model="form.student_ids" multiple class="w-full px-3 py-2 border rounded-md" size="4">
@@ -97,7 +96,7 @@
                   {{ student.user?.name }} ({{ student.admission_number }})
                 </option>
               </select>
-              <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+              <p class="text-xs text-gray-500 mt-1">Hold Ctrl to select multiple</p>
             </div>
           </div>
           
@@ -108,6 +107,66 @@
             </button>
           </div>
         </form>
+      </div>
+    </div>
+    
+    <!-- View Family Modal -->
+    <div v-if="showViewModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto z-50" @click.self="showViewModal = false">
+      <div class="relative top-20 mx-auto p-5 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b dark:border-gray-700">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Family Details</h3>
+          <button @click="showViewModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div v-if="selectedFamily" class="space-y-4">
+          <div class="flex items-center space-x-4 pb-4 border-b dark:border-gray-700">
+            <div class="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <span class="text-2xl text-green-600 dark:text-green-300 font-bold">{{ getInitials(selectedFamily.user?.name) }}</span>
+            </div>
+            <div>
+              <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedFamily.user?.name }}</h4>
+              <p class="text-gray-500 dark:text-gray-400">{{ selectedFamily.user?.email }}</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="text-gray-700 dark:text-gray-300"><span class="font-medium">Occupation:</span> {{ selectedFamily.occupation || 'N/A' }}</div>
+            <div class="text-gray-700 dark:text-gray-300"><span class="font-medium">Joining Date:</span> {{ formatDate(selectedFamily.joining_date) }}</div>
+            <div class="text-gray-700 dark:text-gray-300"><span class="font-medium">Phone:</span> {{ selectedFamily.user?.phone || 'N/A' }}</div>
+            <div class="text-gray-700 dark:text-gray-300"><span class="font-medium">Emergency Contact:</span> {{ selectedFamily.emergency_contact || 'N/A' }}</div>
+            <div class="text-gray-700 dark:text-gray-300"><span class="font-medium">Status:</span> 
+              <span :class="selectedFamily.user?.is_active ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+                {{ selectedFamily.user?.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="md:col-span-2 text-gray-700 dark:text-gray-300"><span class="font-medium">Address:</span> {{ selectedFamily.user?.address || 'N/A' }}</div>
+          </div>
+          
+          <!-- Linked Children Section -->
+          <div class="mt-4 pt-4 border-t dark:border-gray-700">
+            <h5 class="font-medium text-gray-900 dark:text-white mb-2">Linked Children</h5>
+            <div class="space-y-2">
+              <div v-for="student in selectedFamily?.students" :key="student.id" 
+                   class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                <div class="font-medium text-gray-900 dark:text-white">{{ student.user?.name }}</div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  Admission: {{ student.admission_number }} | Class: {{ student.class?.name || 'N/A' }}
+                </div>
+              </div>
+              <div v-if="!selectedFamily?.students?.length" class="text-gray-500 dark:text-gray-400 text-sm">
+                No children linked to this family
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end pt-4 border-t dark:border-gray-700">
+          <button @click="showViewModal = false" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition">Close</button>
+        </div>
       </div>
     </div>
   </div>
@@ -124,6 +183,8 @@ const loading = ref(false);
 const submitting = ref(false);
 const showModal = ref(false);
 const editingFamily = ref(false);
+const selectedFamily = ref<any>(null);
+const showViewModal = ref(false);
 const families = ref([]);
 const students = ref([]);
 const form = ref({
@@ -206,9 +267,39 @@ const editFamily = (family: any) => {
 
 const deleteFamily = async (id: number) => {
   if (confirm('Delete this family?')) {
-    try { await api.delete(`/admin/families/${id}`); toast.success('Family deleted'); fetchFamilies(); } 
-    catch (error: any) { toast.error(error.response?.data?.message || 'Delete failed'); }
+    try { 
+      await api.delete(`/admin/families/${id}`); 
+      toast.success('Family deleted'); 
+      fetchFamilies(); 
+    } 
+    catch (error: any) { 
+      toast.error(error.response?.data?.message || 'Delete failed'); 
+    }
   }
+};
+
+const viewFamily = (family: any) => {
+  selectedFamily.value = family;
+  showViewModal.value = true;
+};
+
+const getInitials = (name: string) => {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+const formatDate = (date: string) => {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 };
 
 const closeModal = () => {
@@ -217,5 +308,8 @@ const closeModal = () => {
   form.value = { id: null, name: '', email: '', phone: '', address: '', occupation: '', emergency_contact: '', student_ids: [] };
 };
 
-onMounted(() => { fetchFamilies(); fetchStudents(); });
+onMounted(() => { 
+  fetchFamilies(); 
+  fetchStudents(); 
+});
 </script>
