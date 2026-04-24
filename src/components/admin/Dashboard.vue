@@ -209,7 +209,7 @@ let attendanceChart: Chart | null = null;
 let studentDistributionChart: Chart | null = null;
 let monthlyAttendanceChart: Chart | null = null;
 
-// Dashboard stats
+// Dashboard stats - REMOVED all static data
 const stats = ref({
   total_students: 0,
   active_students: 0,
@@ -222,17 +222,17 @@ const stats = ref({
   late_today: 0
 });
 
-// Sample chart data (replace with API data)
-const attendanceData = ref([45, 48, 42, 50, 47, 52, 49]);
-const classData = ref({
-  labels: ['Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
-  counts: [45, 52, 38, 41]
+// Chart data - initialized as empty arrays, will be populated from API
+const attendanceData = ref<number[]>([]);
+const classData = ref<{ labels: string[]; counts: number[] }>({
+  labels: [],
+  counts: []
 });
-const monthlyData = ref({
-  labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-  present: [850, 820, 890, 910],
-  absent: [45, 52, 38, 42],
-  late: [32, 28, 35, 30]
+const monthlyData = ref<{ labels: string[]; present: number[]; absent: number[]; late: number[] }>({
+  labels: [],
+  present: [],
+  absent: [],
+  late: []
 });
 
 // Computed percentages
@@ -258,7 +258,7 @@ const latePercentage = computed(() => {
 
 // Initialize Attendance Trend Chart
 const initAttendanceTrendChart = () => {
-  if (!attendanceChartCanvas.value) return;
+  if (!attendanceChartCanvas.value || attendanceData.value.length === 0) return;
   
   const ctx = attendanceChartCanvas.value.getContext('2d');
   if (!ctx) return;
@@ -315,7 +315,7 @@ const initAttendanceTrendChart = () => {
 
 // Initialize Student Distribution Chart
 const initStudentDistributionChart = () => {
-  if (!studentDistributionCanvas.value) return;
+  if (!studentDistributionCanvas.value || classData.value.labels.length === 0) return;
   
   const ctx = studentDistributionCanvas.value.getContext('2d');
   if (!ctx) return;
@@ -368,7 +368,7 @@ const initStudentDistributionChart = () => {
 
 // Initialize Monthly Attendance Chart
 const initMonthlyAttendanceChart = () => {
-  if (!monthlyAttendanceCanvas.value) return;
+  if (!monthlyAttendanceCanvas.value || monthlyData.value.labels.length === 0) return;
   
   const ctx = monthlyAttendanceCanvas.value.getContext('2d');
   if (!ctx) return;
@@ -465,6 +465,7 @@ const fetchDashboardData = async () => {
     if (response.data && response.data.success) {
       const data = response.data.data;
       
+      // Update stats
       stats.value = {
         total_students: data.total_students || 0,
         active_students: data.active_students || 0,
@@ -477,15 +478,19 @@ const fetchDashboardData = async () => {
         late_today: data.late_today || 0
       };
       
-      // Update chart data from API if available
-      if (data.attendance_trend) attendanceData.value = data.attendance_trend;
-      if (data.class_distribution) {
+      // Update chart data from API (REAL DATA, NO STATIC)
+      if (data.attendance_trend && data.attendance_trend.length > 0) {
+        attendanceData.value = data.attendance_trend;
+      }
+      
+      if (data.class_distribution && data.class_distribution.length > 0) {
         classData.value = {
           labels: data.class_distribution.map((c: any) => c.class_name),
           counts: data.class_distribution.map((c: any) => c.count)
         };
       }
-      if (data.monthly_attendance) {
+      
+      if (data.monthly_attendance && data.monthly_attendance.length > 0) {
         monthlyData.value = {
           labels: data.monthly_attendance.map((m: any) => m.month),
           present: data.monthly_attendance.map((m: any) => m.present),
@@ -494,7 +499,7 @@ const fetchDashboardData = async () => {
         };
       }
       
-      // Re-initialize charts with new data
+      // Re-initialize charts with real data
       await initCharts();
       loading.value = false;
     } else {

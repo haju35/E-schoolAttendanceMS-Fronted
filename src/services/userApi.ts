@@ -11,7 +11,15 @@ export const userApi = {
     createUser: (data: any) => api.post('/admin/users', data),
     
     // Update user
-    updateUser: (id: number, data: any) => api.put(`/admin/users/${id}`, data),
+    //updateUser: (id: number, data: any) => api.put(`/admin/users/${id}`, data),
+
+    // Update user - Use POST with _method=PUT
+  updateUser(id: number, data: any) {
+    return api.post(`/admin/users/${id}`, {
+      ...data,
+      _method: 'PUT' // Laravel method spoofing
+    })
+  },
 
     // Get all roles
     getRoles: () => api.get('/admin/roles'),

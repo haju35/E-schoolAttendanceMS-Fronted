@@ -116,9 +116,20 @@
                 {{ formatDate(user.created_at) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button @click="editUser(user)" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Edit">  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg></button>
+                <!-- View Button -->
+                <button @click="viewUser(user)" class="text-blue-600 hover:text-blue-900 mr-3" title="View">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </button>
+                <!-- Edit Button -->
+                <button @click="editUser(user)" class="text-indigo-600 hover:text-indigo-900 mr-3" title="Edit">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <!-- Delete Button -->
                 <button @click="deleteUser(user)" class="text-red-600 hover:text-red-900" title="Delete">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -167,7 +178,92 @@
       </div>
     </div>
 
-    <!-- User Form Modal -->
+    <!-- View User Modal -->
+    <div v-if="showViewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click.self="closeViewModal">
+      <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white">User Details</h3>
+          <button @click="closeViewModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <!-- User Avatar and Basic Info -->
+          <div class="flex items-center space-x-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <div class="h-20 w-20 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+              <span class="text-2xl text-indigo-600 dark:text-indigo-300 font-semibold">
+                {{ getUserInitial(viewUserData.name) }}
+              </span>
+            </div>
+            <div>
+              <h4 class="text-xl font-bold text-gray-900 dark:text-white">{{ viewUserData.name }}</h4>
+              <p class="text-gray-600 dark:text-gray-400">{{ viewUserData.email }}</p>
+              <span :class="getRoleBadgeClass(viewUserData.role)" class="mt-1 inline-block px-2 py-1 text-xs font-semibold rounded-full">
+                {{ capitalize(viewUserData.role) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- User Information Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">User ID</label>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ viewUserData.id }}</p>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Status</label>
+              <p class="mt-1">
+                <span :class="viewUserData.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                  {{ viewUserData.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Phone Number</label>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ viewUserData.phone || 'Not provided' }}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Created At</label>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ formatDate(viewUserData.created_at) }}</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</label>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ formatDate(viewUserData.updated_at) }}</p>
+            </div>
+
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Address</label>
+              <p class="mt-1 text-gray-900 dark:text-white">{{ viewUserData.address || 'Not provided' }}</p>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button 
+              @click="closeViewModal"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Close
+            </button>
+            <button 
+              @click="editFromView"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            >
+              Edit User
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Form Modal (Create/Edit) -->
     <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
       <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white dark:bg-gray-800">
         <div class="flex justify-between items-center mb-4">
@@ -257,12 +353,14 @@ import userApi from '@/services/userApi'
 
 const toast = useToast()
 const users = ref([])
-const roles = ref([])  // Add roles array
+const roles = ref([])
 const loading = ref(false)
 const showModal = ref(false)
+const showViewModal = ref(false)
 const isEditing = ref(false)
 const saving = ref(false)
 const currentUserId = ref(null)
+const viewUserData = ref({})
 
 const filters = ref({
   search: '',
@@ -352,6 +450,24 @@ const clearFilters = () => {
   filters.value = { search: '', role: '', status: '' }
   pagination.value.current_page = 1
   fetchUsers()
+}
+
+// View user details
+const viewUser = (user) => {
+  viewUserData.value = { ...user }
+  showViewModal.value = true
+}
+
+// Close view modal
+const closeViewModal = () => {
+  showViewModal.value = false
+  viewUserData.value = {}
+}
+
+// Edit from view modal
+const editFromView = () => {
+  closeViewModal()
+  editUser(viewUserData.value)
 }
 
 const openCreateModal = () => {
