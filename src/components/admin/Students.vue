@@ -1,42 +1,53 @@
 <template>
-  <div class="p-6">
+  <div class="p-4 md:p-6">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-      <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Students</h2>
-
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Students</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1">Manage student information, enrollments, and records</p>
+      </div>
       <button
-        @click="showModal = true"
-        class="mt-3 md:mt-0 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
+        @click="openAddModal"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 shadow-sm"
       >
-        + Add Student
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
+        Add Student
       </button>
     </div>
 
     <!-- Import Section -->
-    <div class="mb-6 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-      <h3 class="font-semibold mb-2 text-gray-800 dark:text-white">Bulk Import Students</h3>
-      <div class="flex flex-col md:flex-row gap-3">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
+      <h3 class="font-semibold mb-3 text-gray-800 dark:text-white">Bulk Import Students</h3>
+      <div class="flex flex-col md:flex-row gap-4">
         <div class="flex-1">
-          <label class="block text-sm mb-1 text-gray-700 dark:text-gray-300">Upload Excel/CSV File</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Excel/CSV File</label>
           <input 
             type="file" 
             @change="handleFileUpload" 
             accept=".xlsx,.csv,.xls"
-            class="w-full border rounded px-3 py-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
           />
         </div>
-        <div class="flex gap-2 items-end">
+        <div class="flex gap-3 items-end">
           <button 
             @click="downloadTemplate" 
-            class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+            class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
           >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
             Download Template
           </button>
           <button 
             @click="importStudents" 
             :disabled="importing || !file"
-            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
           >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+            </svg>
             {{ importing ? 'Importing...' : 'Import Students' }}
           </button>
         </div>
@@ -44,90 +55,130 @@
     </div>
 
     <!-- Search and Delete Section -->
-    <div class="mb-4 flex flex-col md:flex-row gap-3">
-      <input
-        v-model="search"
-        @input="fetchStudents"
-        type="text"
-        placeholder="Search student..."
-        class="flex-1 md:w-1/3 border border-gray-300 dark:border-gray-600 px-4 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:text-white"
-      />
-      <button
-        @click="deleteSelected"
-        :disabled="selectedStudents.length === 0"
-        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50 transition"
-      >
-        Delete Selected ({{ selectedStudents.length }})
-      </button>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search Students</label>
+          <input
+            v-model="search"
+            @input="fetchStudents"
+            type="text"
+            placeholder="Search by name, email, admission number..."
+            class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+          />
+        </div>
+        <div class="flex items-end">
+          <button
+            @click="deleteSelected"
+            :disabled="selectedStudents.length === 0"
+            class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete Selected ({{ selectedStudents.length }})
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+    <!-- Students Table -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
       <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-100 dark:bg-gray-700">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="p-3 w-12">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider w-12">
                 <input 
                   type="checkbox" 
                   @change="toggleAll" 
                   :checked="isAllSelected"
-                  class="rounded border-gray-300 dark:border-gray-600"
+                  class="rounded border-gray-300 dark:border-gray-600 focus:ring-blue-500"
                 />
               </th>
-              <th class="p-3 text-left text-gray-600 dark:text-gray-300">#</th>
-              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Name</th>
-              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Email</th>
-              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Admission No</th>
-              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Class</th>
-              <th class="p-3 text-left text-gray-600 dark:text-gray-300">Section</th>
-              <th class="p-3 text-right text-gray-600 dark:text-gray-300">Actions</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">#</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student Name</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Admission No</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Class</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Section</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-
-          <tbody>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             <tr
               v-for="(student, index) in students.data"
               :key="student.id"
-              class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+              class="hover:bg-gray-50 dark:hover:bg-gray-700 transition"
             >
-              <td class="p-3">
+              <td class="px-6 py-4 whitespace-nowrap">
                 <input 
                   type="checkbox" 
                   :value="student.id"
                   v-model="selectedStudents"
-                  class="rounded border-gray-300 dark:border-gray-600"
+                  class="rounded border-gray-300 dark:border-gray-600 focus:ring-blue-500"
                 />
               </td>
-              <td class="p-3 text-gray-700 dark:text-gray-300">{{ index + 1 }}</td>
-              <td class="p-3 text-gray-800 dark:text-white">{{ student.user?.name }}</td>
-              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.user?.email }}</td>
-              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.admission_number }}</td>
-              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.currentClass?.name }}</td>
-              <td class="p-3 text-gray-600 dark:text-gray-400">{{ student.currentSection?.name }}</td>
-              <td class="p-3 text-right space-x-2 whitespace-nowrap">
-                <button
-                  @click="editStudent(student)"
-                  class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300 transition" title="edit"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                </button>
-                <button
-                  @click="deleteStudent(student.id)"
-                  class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition" title="delete"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ ((students.meta?.current_page || 1) - 1) * (students.meta?.per_page || 10) + index + 1 }}</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3">
+                    <span class="text-sm font-medium text-blue-600 dark:text-blue-300">{{ getInitials(student.user?.name) }}</span>
+                  </div>
+                  <div>
+                    <div class="text-sm font-medium text-gray-900 dark:text-white">{{ student.user?.name }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ student.user?.phone || 'No phone' }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                  {{ student.admission_number }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ student.currentClass?.name || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ student.currentSection?.name || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ student.user?.email }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div class="flex justify-end space-x-3">
+                  <button
+                    @click="viewStudent(student)"
+                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition"
+                    title="View Details"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                  <button
+                    @click="editStudent(student)"
+                    class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition"
+                    title="Edit"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+                  <button
+                    @click="deleteStudent(student.id)"
+                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition"
+                    title="Delete"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
 
             <tr v-if="!students.data || students.data.length === 0">
-              <td colspan="8" class="text-center p-4 text-gray-500 dark:text-gray-400">
-                No students found.
+              <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <p>No students found</p>
+                <p class="text-sm mt-1">Click the "Add Student" button to create one.</p>
               </td>
             </tr>
           </tbody>
@@ -135,118 +186,125 @@
       </div>
 
       <!-- Pagination -->
-      <div
-        v-if="students.meta && students.meta.last_page > 1"
-        class="mt-4 flex justify-center items-center space-x-2 p-4 border-t dark:border-gray-700"
-      >
-        <button
-          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300 transition"
-          :disabled="students.meta.current_page === 1"
-          @click="fetchStudents(students.meta.current_page - 1)"
-        >
-          Previous
-        </button>
-
-        <span class="px-3 py-1 text-gray-700 dark:text-gray-300">
-          Page {{ students.meta.current_page }} of {{ students.meta.last_page }}
-        </span>
-
-        <button
-          class="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-300 transition"
-          :disabled="students.meta.current_page === students.meta.last_page"
-          @click="fetchStudents(students.meta.current_page + 1)"
-        >
-          Next
-        </button>
+      <div v-if="students.meta && students.meta.last_page > 1" class="px-6 py-4 border-t dark:border-gray-700">
+        <div class="flex justify-between items-center">
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            Showing {{ ((students.meta.current_page - 1) * (students.meta.per_page || 10)) + 1 }} to 
+            {{ Math.min(students.meta.current_page * (students.meta.per_page || 10), students.meta.total) }} of 
+            {{ students.meta.total }} results
+          </div>
+          <div class="flex space-x-2">
+            <button
+              class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+              :disabled="students.meta.current_page === 1"
+              @click="fetchStudents(students.meta.current_page - 1)"
+            >
+              Previous
+            </button>
+            <span class="px-3 py-1 text-sm text-gray-700 dark:text-gray-300">
+              Page {{ students.meta.current_page }} of {{ students.meta.last_page }}
+            </span>
+            <button
+              class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+              :disabled="students.meta.current_page === students.meta.last_page"
+              @click="fetchStudents(students.meta.current_page + 1)"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Add/Edit Student Modal -->
     <div
       v-if="showModal"
-      class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-      @click.self="showModal = false"
+      class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto z-50"
+      @click.self="closeModal"
     >
-      <div
-        class="bg-white dark:bg-gray-800 w-full max-w-2xl p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]"
-      >
-        <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">
-          {{ editingStudent ? 'Edit Student' : 'Add Student' }}
-        </h3>
+      <div class="relative top-20 mx-auto p-5 w-full max-w-3xl bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b dark:border-gray-700">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            {{ editingStudent ? 'Edit Student' : 'Add New Student' }}
+          </h3>
+          <button @click="closeModal" class="text-gray-400 hover:text-gray-600 dark:text-gray-400">
+            ✕
+          </button>
+        </div>
 
         <form @submit.prevent="saveStudent" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Name *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name *</label>
               <input
                 v-model="form.name"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Email *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email *</label>
               <input
                 v-model="form.email"
                 type="email"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Phone</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
               <input
                 v-model="form.phone"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Address</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
               <input
                 v-model="form.address"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Admission Number *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Admission Number *</label>
               <input
                 v-model="form.admission_number"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 required
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Roll Number</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Roll Number</label>
               <input
                 v-model="form.roll_number"
                 type="text"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date of Birth</label>
               <input
                 v-model="form.date_of_birth"
                 type="date"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Gender</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gender</label>
               <select
                 v-model="form.gender"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               >
                 <option value="female">Female</option>
                 <option value="male">Male</option>
@@ -254,10 +312,10 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Class *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Class *</label>
               <select
                 v-model="form.current_class_id"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 required
               >
                 <option value="">Select Class</option>
@@ -268,11 +326,11 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Section *</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Section *</label>
               <select
                 v-model="form.current_section_id"
                 :disabled="!form.current_class_id"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white disabled:opacity-50"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 required
               >
                 <option value="">Select Section</option>
@@ -283,41 +341,105 @@
             </div>
 
             <div>
-              <label class="block text-sm mb-1 font-medium text-gray-700 dark:text-gray-300">Admission Date</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Admission Date</label>
               <input
                 v-model="form.admission_date"
                 type="date"
-                class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
           </div>
 
-          <div class="flex justify-end space-x-2 mt-4 pt-4 border-t dark:border-gray-700">
+          <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
             <button
               type="button"
               @click="closeModal"
-              class="px-4 py-2 border rounded hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition"
+              class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition"
             >
               Cancel
             </button>
-
             <button
               type="submit"
-              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
-              {{ editingStudent ? 'Update' : 'Save' }}
+              {{ editingStudent ? 'Update Student' : 'Create Student' }}
             </button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- View Student Modal -->
+    <div v-if="showViewModal" class="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto z-50" @click.self="showViewModal = false">
+      <div class="relative top-20 mx-auto p-5 w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b dark:border-gray-700">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Student Details</h3>
+          <button @click="showViewModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <div v-if="selectedStudent" class="space-y-4">
+          <div class="flex items-center space-x-4 pb-4 border-b dark:border-gray-700">
+            <div class="w-20 h-20 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <span class="text-2xl text-blue-600 dark:text-blue-300 font-bold">{{ getInitials(selectedStudent.user?.name) }}</span>
+            </div>
+            <div>
+              <h4 class="text-lg font-bold text-gray-900 dark:text-white">{{ selectedStudent.user?.name }}</h4>
+              <p class="text-gray-500 dark:text-gray-400">{{ selectedStudent.user?.email }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Admission: {{ selectedStudent.admission_number }}</p>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Roll Number:</span> {{ selectedStudent.roll_number || 'N/A' }}
+            </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Gender:</span> {{ selectedStudent.gender || 'N/A' }}
+            </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Date of Birth:</span> {{ formatDate(selectedStudent.date_of_birth) }}
+            </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Phone:</span> {{ selectedStudent.user?.phone || 'N/A' }}
+            </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Class:</span> {{ selectedStudent.currentClass?.name || 'N/A' }}
+            </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Section:</span> {{ selectedStudent.currentSection?.name || 'N/A' }}
+            </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Admission Date:</span> {{ formatDate(selectedStudent.admission_date) }}
+            </div>
+            <div class="md:col-span-2 text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Address:</span> {{ selectedStudent.user?.address || 'N/A' }}
+            </div>
+          </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
+          <button 
+            @click="editStudent(selectedStudent); showViewModal = false" 
+            class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
+            Edit Student
+          </button>
+          <button @click="showViewModal = false" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition">Close</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import axios from "axios";
-import { watch } from 'vue';
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
 
 // State variables
 const file = ref(null);
@@ -326,19 +448,11 @@ const classes = ref([]);
 const sections = ref([]);
 const search = ref("");
 const showModal = ref(false);
+const showViewModal = ref(false);
 const importing = ref(false);
-const importResult = ref(null);
 const selectedStudents = ref([]);
 const editingStudent = ref(null);
-import { useToast } from 'vue-toastification';
-
-const toast = useToast();
-
-// Computed property for "select all" state
-const isAllSelected = computed(() => {
-  return students.value.data.length > 0 && 
-         selectedStudents.value.length === students.value.data.length;
-});
+const selectedStudent = ref(null);
 
 // Get token and setup API
 const token = localStorage.getItem("access_token");
@@ -378,6 +492,33 @@ const form = ref({
   admission_date: "",
 });
 
+// Computed property for "select all" state
+const isAllSelected = computed(() => {
+  return students.value.data.length > 0 && 
+         selectedStudents.value.length === students.value.data.length;
+});
+
+// Get initials for avatar
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+// Format date
+const formatDate = (date) => {
+  if (!date) return 'N/A';
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 // Reset form
 const resetForm = () => {
   form.value = {
@@ -396,10 +537,22 @@ const resetForm = () => {
   editingStudent.value = null;
 };
 
+// Open add modal
+const openAddModal = () => {
+  resetForm();
+  showModal.value = true;
+};
+
 // Close modal
 const closeModal = () => {
   showModal.value = false;
   resetForm();
+};
+
+// View student
+const viewStudent = (student) => {
+  selectedStudent.value = student;
+  showViewModal.value = true;
 };
 
 // Toggle select all
@@ -414,7 +567,6 @@ const toggleAll = (event) => {
 // File handling
 const handleFileUpload = (event) => {
   file.value = event.target.files[0];
-  importResult.value = null;
 };
 
 // Download template
@@ -455,37 +607,17 @@ const importStudents = async () => {
     });
     
     if (response.data.success) {
-      importResult.value = {
-        total: response.data.data?.total || 0,
-        success: response.data.data?.success || 0,
-        failed: response.data.data?.failed || 0,
-        errors: response.data.data?.errors || []
-      };
-      
       toast.success(response.data.message);
-      
-      // Reset file input
       file.value = null;
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = '';
-      
       await fetchStudents();
     } else {
       toast.error('Import failed: ' + response.data.message);
     }
   } catch (err) {
     console.error('Import error:', err);
-    const errorMessage = err.response?.data?.message || 'Failed to import students';
-    toast.error(errorMessage);
-    
-    if (err.response?.data?.errors) {
-      importResult.value = {
-        total: 0,
-        success: 0,
-        failed: 1,
-        errors: [{ row: 0, errors: [err.response.data.errors] }]
-      };
-    }
+    toast.error(err.response?.data?.message || 'Failed to import students');
   } finally {
     importing.value = false;
   }
@@ -525,7 +657,6 @@ const fetchStudents = async (page = 1) => {
       links: links,
     };
     
-    // Clear selected students when changing pages or searching
     selectedStudents.value = [];
   } catch (err) {
     console.error('Error fetching students:', err);
@@ -536,7 +667,7 @@ const fetchStudents = async (page = 1) => {
 // Fetch classes
 const fetchClasses = async () => {
   try {
-    const res = await api.get('/admin/classes');
+    const res = await api.get('/admin/classes?limit=all');
     classes.value = res.data.data?.data || res.data.data || [];
   } catch (err) {
     console.error('Error fetching classes:', err);
@@ -547,18 +678,16 @@ const fetchClasses = async () => {
 // Fetch sections
 const fetchSections = async (classId = null) => {
   try {
-    let url = '/admin/sections';
-
+    let url = '/admin/sections?limit=all';
     if(classId){
-      url += `?class_room_id=${classId}`;
+      url += `&class_room_id=${classId}`;
     }
     const res = await api.get(url);
-    sections.value = res.data.data || [];
+    sections.value = res.data.data?.data || res.data.data || [];
   } catch (err) {
     console.error('Error fetching sections:', err);
     sections.value = [];
   }
-  
 };
 
 watch(() => form.value.current_class_id, (newClassId) => {
@@ -576,40 +705,33 @@ const saveStudent = async () => {
   try {
     let response;
     if (editingStudent.value) {
-      // Update existing student
       response = await api.put(`/admin/students/${editingStudent.value.id}`, form.value);
-      toast.success(response.data.message || "Student updated successfully");
+      toast.success("Student updated successfully");
     } else {
-      // Create new student
       response = await api.post('/admin/students', form.value);
-      toast.success(response.data.message || "Student created successfully. Credentials sent to email.");
+      toast.success("Student created successfully. Credentials sent to email.");
     }
     
     closeModal();
     await fetchStudents();
   } catch (err) {
     console.error('Error saving student:', err.response?.data || err);
-    const errorMessage = err.response?.data?.message || "Error saving student";
-    toast.error(errorMessage);
+    toast.error(err.response?.data?.message || "Error saving student");
   }
 };
 
 // Delete single student
 const deleteStudent = async (id) => {
-  if (!confirm("Delete this student? This action cannot be undone.")) return;
+  if (!confirm ("Delete this student? This action cannot be undone.")) return;
   
   try {
     await api.delete(`/admin/students/${id}`);
     toast.success("Student deleted successfully");
-    
-    // Remove from selectedStudents if present
     selectedStudents.value = selectedStudents.value.filter(selectedId => selectedId !== id);
-    
     await fetchStudents();
   } catch (err) {
     console.error('Error deleting student:', err);
-    const errorMessage = err.response?.data?.message || "Failed to delete student";
-    toast.error(errorMessage);
+    toast.error(err.response?.data?.message || "Failed to delete student");
   }
 };
 
@@ -625,37 +747,20 @@ const deleteSelected = async () => {
   }
 
   try {
-    const idsParam = selectedStudents.value.join(',');
     const response = await api.post('/admin/students/bulk-delete', {
       ids: selectedStudents.value
     });
     
     if (response.data.success || response.status === 200) {
       toast.success(response.data.message || `${selectedStudents.value.length} student(s) deleted successfully`);
-      
-      // Clear selection
       selectedStudents.value = [];
-      
-      // Refresh the list
       await fetchStudents();
     } else {
       toast.error('Failed to delete students: ' + (response.data.message || 'Unknown error'));
     }
   } catch (err) {
     console.error('Bulk delete error:', err);
-    
-    // More detailed error handling
-    if (err.response) {
-      const errorMsg = err.response.data?.message || err.response.data?.error || 'Server error';
-      toast.error(`Failed to delete students: ${errorMsg}`);
-      
-      // Log the full error for debugging
-      console.error('Error details:', err.response.data);
-    } else if (err.request) {
-      toast.error('No response from server. Please check your connection.');
-    } else {
-      toast.error(`Error: ${err.message}`);
-    }
+    toast.error(err.response?.data?.message || 'Failed to delete students');
   }
 };
 
@@ -682,58 +787,5 @@ const editStudent = (student) => {
 onMounted(() => {
   fetchStudents();
   fetchClasses();
-
 });
 </script>
-
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Custom scrollbar for better UX */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Dark mode scrollbar */
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #1f2937;
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: #4b5563;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: #6b7280;
-  }
-}
-</style>

@@ -31,14 +31,15 @@
 
             <div class="relative">
               <button @click="toggleProfileMenu" class="flex items-center space-x-2 focus:outline-none">
-                <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
+                <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center overflow-hidden">
                   <img 
-                    v-if="profilePhotoUrl" 
+                    v-if="profilePhotoUrl && profilePhotoUrl !== 'null'"
                     :src="profilePhotoUrl" 
                     alt="Profile"
                     class="w-full h-full object-cover"
+                    @error="handleImageError"
                   />
-                  <span class="text-indigo-600 dark:text-indigo-300 font-semibold">{{ parentInitials }}</span>
+                  <span v-else class="text-indigo-600 dark:text-indigo-300 font-semibold">{{ parentInitials }}</span>
                 </div>
                 <span class="text-gray-700 dark:text-gray-300 hidden md:block">{{ parentName }}</span>
                 <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,12 +166,18 @@ const fetchUserProfile = async () => {
       if (response.data.data.photo) {
         const photo = response.data.data.photo
         const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-        profilePhotoUrl.value = photo.startsWith('http') ? photo : `${baseURL}/storage/${photo}`
-        console.log('Profile photo URL set to:', profilePhotoUrl.value)
+        // Remove 'public/' if present
+        const cleanPhoto = photo.replace(/^public\//, '')
+        const fullUrl = `${baseURL}/storage/${cleanPhoto}`
+        profilePhotoUrl.value = fullUrl
+        console.log('Profile photo URL set to:', fullUrl)
+      } else {
+        profilePhotoUrl.value = null
       }
     }
   } catch (error) {
     console.error('Error fetching profile:', error)
+    profilePhotoUrl.value = null
   }
 }
 

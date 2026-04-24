@@ -50,7 +50,7 @@
           <div>
             <h2 class="text-2xl font-bold text-gray-800 dark:text-white">{{ profile.name || 'Family Member' }}</h2>
             <p class="text-gray-600 dark:text-gray-400">{{ profile.email || 'No email' }}</p>
-            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Parent/Guardian Account</p>
+            <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Family Account</p>
           </div>
         </div>
         
@@ -123,7 +123,7 @@
               <div class="w-10 h-10 rounded-full overflow-hidden bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
                 <img 
                   v-if="student.photo" 
-                  :src="getStudentPhotoUrl(student.photo)" 
+                  :src="getStudentPhotoUrl(student.photo) || undefined" 
                   alt="Student"
                   class="w-full h-full object-cover"
                 />
