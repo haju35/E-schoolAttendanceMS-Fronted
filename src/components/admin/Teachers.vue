@@ -16,11 +16,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input type="text" v-model="filters.search" @input="fetchTeachers" placeholder="Search by name, ID, email..." 
                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400">
-        <select v-model="filters.status" @change="fetchTeachers" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
+      
       </div>
     </div>
 
