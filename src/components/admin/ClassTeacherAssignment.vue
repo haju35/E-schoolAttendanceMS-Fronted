@@ -121,6 +121,11 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
+                <button @click="editClassTeacher(item)" class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400" title="Edit">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
                 <button 
                   @click="removeClassTeacher(item.id)" 
                   class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
@@ -155,7 +160,7 @@
     <div v-if="showAssignModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center" @click.self="closeModal">
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
         <div class="flex justify-between items-center p-6 border-b dark:border-gray-700">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Assign Class Teacher</h3>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ modalTitle }}</h3>
           <button @click="closeModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -185,7 +190,7 @@
           <div>
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Class *</label>
             <select 
-              v-model="form.class_id" 
+              v-model="form.class_room_id" 
               required
               @change="onClassChange"
               class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
@@ -247,7 +252,7 @@
               :disabled="submitting"
               class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
             >
-              {{ submitting ? 'Assigning...' : 'Assign Class Teacher' }}
+              {{ submitButtonText }}
             </button>
           </div>
         </form>
@@ -267,6 +272,8 @@ const toast = useToast();
 const loading = ref(false);
 const submitting = ref(false);
 const showAssignModal = ref(false);
+const editingClassTeacher = ref(false);
+const editingId = ref(null); // Add this
 const search = ref('');
 const classTeachers = ref<any[]>([]);
 const teachers = ref<any[]>([]);
@@ -275,12 +282,21 @@ const sections = ref<any[]>([]);
 
 const form = ref({
   teacher_id: '',
-  class_id: '',
+  class_room_id: '',
   section_id: '',
   academic_year: new Date().getFullYear().toString()
 });
 
 // Computed
+const modalTitle = computed(() => {
+  return editingClassTeacher.value ? 'Edit Class Teacher' : 'Assign Class Teacher';
+});
+
+const submitButtonText = computed(() => {
+  if (submitting.value) return editingClassTeacher.value ? 'Updating...' : 'Assigning...';
+  return editingClassTeacher.value ? 'Update Class Teacher' : 'Assign Class Teacher';
+});
+
 const filteredTeachers = computed(() => {
   if (!search.value) return classTeachers.value;
   const searchLower = search.value.toLowerCase();
@@ -293,13 +309,22 @@ const filteredTeachers = computed(() => {
 });
 
 const availableTeachers = computed(() => {
-  const assignedTeacherIds = classTeachers.value.map(ct => ct.teacher_id);
-  return teachers.value.filter(t => !assignedTeacherIds.includes(t.id));
+  if (!editingClassTeacher.value) {
+    // When creating new, filter out already assigned teachers
+    const assignedTeacherIds = classTeachers.value.map(ct => ct.teacher_id);
+    return teachers.value.filter(t => !assignedTeacherIds.includes(t.id));
+  } else {
+    // When editing, include the current teacher
+    const assignedTeacherIds = classTeachers.value
+      .filter(ct => ct.id !== editingId.value)
+      .map(ct => ct.teacher_id);
+    return teachers.value.filter(t => !assignedTeacherIds.includes(t.id));
+  }
 });
 
 const filteredSections = computed(() => {
-  if (!form.value.class_id) return [];
-  return sections.value.filter(s => s.class_room_id === form.value.class_id);
+  if (!form.value.class_room_id) return [];
+  return sections.value.filter(s => s.class_room_id === parseInt(form.value.class_room_id));
 });
 
 const uniqueClassesCount = computed(() => {
@@ -371,34 +396,63 @@ const onClassChange = () => {
 };
 
 const assignClassTeacher = async () => {
-  if (!form.value.teacher_id || !form.value.class_id || !form.value.section_id || !form.value.academic_year) {
+  if (!form.value.teacher_id || !form.value.class_room_id || !form.value.section_id || !form.value.academic_year) {
     toast.error('Please fill all fields');
     return;
   }
 
   submitting.value = true;
   try {
-    const response = await api.post('/admin/class-teachers', {
-      teacher_id: parseInt(form.value.teacher_id),
-      class_id: parseInt(form.value.class_id),
-      section_id: parseInt(form.value.section_id),
-      academic_year: form.value.academic_year
-    });
+    let response;
+    
+    if (editingClassTeacher.value && editingId.value) {
+      // Update existing assignment using the stored ID
+      response = await api.put(`/admin/class-teachers/${editingId.value}`, {
+        teacher_id: parseInt(form.value.teacher_id),
+        class_room_id: parseInt(form.value.class_room_id),
+        section_id: parseInt(form.value.section_id),
+        academic_year: form.value.academic_year
+      });
+    } else if (editingClassTeacher.value && !editingId.value) {
+      toast.error('No assignment ID found for update');
+      return;
+    } else {
+      // Create new assignment
+      response = await api.post('/admin/class-teachers', {
+        teacher_id: parseInt(form.value.teacher_id),
+        class_room_id: parseInt(form.value.class_room_id),
+        section_id: parseInt(form.value.section_id),
+        academic_year: form.value.academic_year
+      });
+    }
     
     if (response.data.success) {
-      toast.success(response.data.message || 'Class teacher assigned successfully');
+      toast.success(response.data.message || (editingClassTeacher.value ? 'Class teacher updated successfully' : 'Class teacher assigned successfully'));
       closeModal();
       await fetchClassTeachers();
       await fetchTeachers();
     } else {
-      toast.error(response.data.message || 'Assignment failed');
+      toast.error(response.data.message || (editingClassTeacher.value ? 'Update failed' : 'Assignment failed'));
     }
   } catch (error: any) {
-    console.error('Assignment error:', error);
-    toast.error(error.response?.data?.message || 'Failed to assign class teacher');
+    console.error('Operation error:', error);
+    toast.error(error.response?.data?.message || (editingClassTeacher.value ? 'Failed to update class teacher' : 'Failed to assign class teacher'));
   } finally {
     submitting.value = false;
   }
+};
+
+const editClassTeacher = (item: any) => {
+  console.log('Editing item:', item);
+  editingClassTeacher.value = true;
+  editingId.value = item.id; // Store the ID
+  form.value = {
+    teacher_id: item.teacher_id?.toString() || '',
+    class_room_id: item.class_room_id?.toString() || '',
+    section_id: item.section_id?.toString() || '',
+    academic_year: item.academic_year || new Date().getFullYear().toString()
+  };
+  showAssignModal.value = true;
 };
 
 const removeClassTeacher = async (assignmentId: number) => {
@@ -420,9 +474,11 @@ const removeClassTeacher = async (assignmentId: number) => {
 };
 
 const openAssignModal = () => {
+  editingClassTeacher.value = false;
+  editingId.value = null;
   form.value = { 
     teacher_id: '', 
-    class_id: '', 
+    class_room_id: '', 
     section_id: '', 
     academic_year: new Date().getFullYear().toString() 
   };
@@ -431,9 +487,11 @@ const openAssignModal = () => {
 
 const closeModal = () => {
   showAssignModal.value = false;
+  editingClassTeacher.value = false;
+  editingId.value = null;
   form.value = { 
     teacher_id: '', 
-    class_id: '', 
+    class_room_id: '', 
     section_id: '', 
     academic_year: new Date().getFullYear().toString() 
   };
