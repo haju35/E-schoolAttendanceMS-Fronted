@@ -88,6 +88,28 @@ export interface TeacherAssignment {
   academic_year: string;
 }
 
+// Add to your types file
+export interface ClassTeacher {
+  id: number;
+  teacher_id: number;
+  class_room_id: number;
+  section_id: number;
+  academic_year: string;
+  teacher?: Teacher;
+  teacher_name?: string; // From API response
+  teacher_email?: string; // From API response
+  class_name?: string; // From API response
+  section_name?: string; // From API response
+  students_count?: number;
+}
+
+export interface ClassTeacherFormData {
+  teacher_id: number;
+  class_room_id: number;
+  section_id: number;
+  academic_year: string;
+}
+
 export interface Attendance {
   id: number;
   student_id: number;
