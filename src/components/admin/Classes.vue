@@ -62,8 +62,23 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                 {{ cls.sections_count || 0 }} sections
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right">
+              <td class="px-6 py-4 whitespace-nowrap text-right relative">
                 <div class="flex justify-end space-x-3">
+                  <button @click="toggleMenu(cls.id)" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+                  </button>
+                  <div v-if="activeMenu === cls.id"
+                    class="absolute right-0 mt-8 w-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50"
+                  >
+                  <div class="flex gap-3 p-2">
                   <button 
                     @click="viewClass(cls)" 
                     class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition"
@@ -91,6 +106,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                   </button>
+                </div>
+                </div>
                 </div>
               </td>
             </tr>
@@ -261,11 +278,6 @@
         </div>
         
         <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
-          <button 
-            @click="editClass(selectedClass); showViewModal = false" 
-            class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
-            Edit Class
-          </button>
           <button @click="showViewModal = false" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition">Close</button>
         </div>
       </div>
@@ -274,13 +286,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import { ref, computed, onMounted } from 'vue';
+import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 
 const toast = useToast();
+const loading = ref(false);
 const classes = ref<any>({ data: [], meta: null });
 const showModal = ref(false);
+const activeMenu = ref<number | null>(null);
 const showViewModal = ref(false);
 const submitting = ref(false);
 const editingClass = ref(false);
@@ -288,14 +302,32 @@ const selectedClass = ref<any>(null);
 const filters = ref({ search: '' });
 
 const form = ref({
-  id: null,
+  id: null as number | null,
   name: '',
   numeric_value: 1
 });
 
-const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/admin/classes';
-const token = localStorage.getItem('access_token');
-const headers = { Authorization: `Bearer ${token}` };
+// Computed property to safely get classes data
+const classesData = computed(() => {
+  if (classes.value.data && Array.isArray(classes.value.data)) {
+    return classes.value.data;
+  }
+  if (Array.isArray(classes.value)) {
+    return classes.value;
+  }
+  return [];
+});
+
+// Debounce timer
+let searchTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// Debounced search
+const debouncedSearch = () => {
+  if (searchTimeout) clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    fetchClasses(1);
+  }, 500);
+};
 
 // Get initials
 const getInitials = (name: string) => {
@@ -310,17 +342,36 @@ const getInitials = (name: string) => {
 
 // Fetch classes with search and pagination
 const fetchClasses = async (page = 1) => {
+  loading.value = true;
   try {
-    let url = `${API}?page=${page}`;
+    // FIXED: Use the correct endpoint path
+    let url = `/admin/classes?page=${page}`;
     if (filters.value.search) {
-      url += `&search=${filters.value.search}`;
+      url += `&search=${encodeURIComponent(filters.value.search)}`;
     }
     
-    const res = await axios.get(url, { headers });
-    classes.value = res.data.data;
+    console.log('Fetching classes from:', url); // Debug log
+    
+    const res = await api.get(url);
+    
+    console.log('Response:', res.data); // Debug log
+    
+    // Handle different response structures
+    if (res.data.data?.data) {
+      classes.value = res.data.data;
+    } else if (res.data.data) {
+      classes.value = res.data;
+    } else {
+      classes.value = { data: res.data || [], meta: null };
+    }
   } catch (err: any) {
     console.error('Fetch error:', err.response?.data || err);
-    toast.error('Failed to load classes');
+    console.error('Status:', err.response?.status);
+    console.error('URL:', err.config?.url);
+    toast.error(err.response?.data?.message || 'Failed to load classes');
+    classes.value = { data: [], meta: null };
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -350,15 +401,28 @@ const editClass = (cls: any) => {
 
 // Save class (create or update)
 const saveClass = async () => {
+  // Validation
+  if (!form.value.name.trim()) {
+    toast.error('Class name is required');
+    return;
+  }
+  
+  if (!form.value.numeric_value || form.value.numeric_value < 1 || form.value.numeric_value > 12) {
+    toast.error('Numeric value must be between 1 and 12');
+    return;
+  }
+  
   submitting.value = true;
   
   try {
     let response;
     if (editingClass.value) {
-      response = await axios.put(`${API}/${form.value.id}`, form.value, { headers });
+      // FIXED: Use correct endpoint for update
+      response = await api.put(`/admin/classes/${form.value.id}`, form.value);
       toast.success(response.data.message || 'Class updated successfully');
     } else {
-      response = await axios.post(API, form.value, { headers });
+      // FIXED: Use correct endpoint for create
+      response = await api.post('/admin/classes', form.value);
       toast.success(response.data.message || 'Class created successfully');
     }
     
@@ -366,7 +430,8 @@ const saveClass = async () => {
     fetchClasses();
   } catch (err: any) {
     console.error('Save error:', err.response?.data || err);
-    toast.error(err.response?.data?.message || 'Failed to save class');
+    const errorMsg = err.response?.data?.message || err.response?.data?.errors || 'Failed to save class';
+    toast.error(typeof errorMsg === 'object' ? JSON.stringify(errorMsg) : errorMsg);
   } finally {
     submitting.value = false;
   }
@@ -374,15 +439,16 @@ const saveClass = async () => {
 
 // Delete class
 const deleteClass = async (id: number) => {
-  if (!confirm('Delete this class? This action cannot be undone.')) return;
+  if (!confirm('Delete this class? This action cannot be undone. All sections in this class will also be deleted.')) return;
 
   try {
-    const res = await axios.delete(`${API}/${id}`, { headers });
+    // FIXED: Use correct endpoint for delete
+    const res = await api.delete(`/admin/classes/${id}`);
     toast.success(res.data.message || 'Class deleted successfully');
     fetchClasses();
   } catch (err: any) {
     console.error('Delete error:', err.response?.data || err);
-    toast.error(err.response?.data?.message || 'Cannot delete class');
+    toast.error(err.response?.data?.message || 'Cannot delete class. It may have students or sections assigned.');
   }
 };
 
@@ -393,5 +459,16 @@ const closeModal = () => {
   form.value = { id: null, name: '', numeric_value: 1 };
 };
 
-onMounted(() => fetchClasses());
+const toggleMenu = (id: number) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
+};
+
+onMounted(() => {
+  document.addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('.relative')) {
+      activeMenu.value = null;
+    }
+  });
+  fetchClasses();
+});
 </script>
