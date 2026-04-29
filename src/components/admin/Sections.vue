@@ -43,39 +43,56 @@
                 {{ section.capacity ? section.capacity + ' students' : 'Unlimited' }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right">
-                <div class="flex justify-end space-x-2">
-                  <!-- View Button -->
-                  <button 
-                    @click="viewSection(section)" 
-                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400"
-                    title="View Details"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <div class="relative">
+                  <button @click.stop="toggleMenu(section.id)" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                     </svg>
                   </button>
-                  
-                  <!-- Edit Button -->
-                  <button 
-                    @click="editSection(section)" 
-                    class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400"
-                    title="Edit"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  
-                  <!-- Delete Button -->
-                  <button 
-                    @click="deleteSection(section.id)" 
-                    class="text-red-600 hover:text-red-800 dark:text-red-400"
-                    title="Delete"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+
+                  <div v-if="activeMenu === section.id"
+                    class="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-10">
+                    <div class="flex justify-around p-2">
+                      <!-- View Button -->
+                      <button 
+                        @click="viewSection(section)" 
+                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition"
+                        title="View Details"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+                      
+                      <!-- Edit Button -->
+                      <button 
+                        @click="editSection(section)" 
+                        class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition"
+                        title="Edit"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      
+                      <!-- Delete Button -->
+                      <button 
+                        @click="deleteSection(section.id)" 
+                        class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition"
+                        title="Delete"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -173,7 +190,7 @@
                   v-if="bulkForm.sections.length > 1" 
                   type="button"
                   @click="removeSectionField(index)"
-                  class="text-red-600 hover:text-red-800"
+                  class="text-red-600 hover:text-red-800 p-2"
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -321,7 +338,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 
@@ -331,6 +348,7 @@ const toast = useToast();
 const loading = ref(false);
 const submitting = ref(false);
 const showModal = ref(false);
+const activeMenu = ref<number | null>(null);
 const showViewModal = ref(false);
 const editing = ref(false);
 const sections = ref<any[]>([]);
@@ -420,6 +438,7 @@ const openAddModal = () => {
 const viewSection = (section: any) => {
   selectedSection.value = section;
   showViewModal.value = true;
+  activeMenu.value = null; // Close menu after action
 };
 
 // Edit section
@@ -432,6 +451,7 @@ const editSection = (section: any) => {
     capacity: section.capacity || ''
   };
   showModal.value = true;
+  activeMenu.value = null; // Close menu after action
 };
 
 // Save section (create or update)
@@ -440,7 +460,7 @@ const saveSection = async () => {
   
   try {
     if (editing.value) {
-      // Update single section - Use PUT method
+      // Update single section
       const response = await api.put(`/admin/sections/${form.value.id}`, {
         class_room_id: parseInt(form.value.class_room_id),
         name: form.value.name,
@@ -455,7 +475,7 @@ const saveSection = async () => {
         toast.error(response.data.message || 'Update failed');
       }
     } else {
-      // Create multiple sections - Use POST method for each section individually
+      // Create multiple sections
       if (!bulkForm.value.class_room_id) {
         toast.error('Please select a class');
         return;
@@ -471,7 +491,7 @@ const saveSection = async () => {
       let successCount = 0;
       let errorCount = 0;
       
-      // Create each section individually using POST
+      // Create each section individually
       for (const section of validSections) {
         try {
           const response = await api.post('/admin/sections', {
@@ -516,6 +536,7 @@ const deleteSection = async (id: number) => {
     const response = await api.delete(`/admin/sections/${id}`);
     if (response.data.success) {
       toast.success('Section deleted successfully');
+      activeMenu.value = null; // Close menu after action
       await fetchSections();
     } else {
       toast.error(response.data.message || 'Delete failed');
@@ -538,8 +559,26 @@ const closeModal = () => {
   };
 };
 
+// Toggle dropdown menu
+const toggleMenu = (id: number) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
+};
+
+// Handle click outside to close menu
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.relative')) {
+    activeMenu.value = null;
+  }
+};
+
 onMounted(() => {
+  document.addEventListener('click', handleClickOutside);
   fetchSections();
   fetchClasses();
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
 });
 </script>

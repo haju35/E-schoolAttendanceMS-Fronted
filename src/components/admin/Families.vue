@@ -55,12 +55,12 @@
                     <div class="text-xs text-gray-400 dark:text-gray-500">{{ family.user?.phone || 'No phone' }}</div>
                   </div>
                 </div>
-              </td>
+               </td>
               <td class="px-6 py-4 hidden md:table-cell">
                 <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                   {{ family.occupation || 'N/A' }}
                 </span>
-              </td>
+               </td>
               <td class="px-6 py-4">
                 <div class="space-y-1">
                   <div v-for="student in family.students" :key="student.id" class="text-sm text-gray-600 dark:text-gray-400">
@@ -69,48 +69,68 @@
                   </div>
                   <div v-if="!family.students?.length" class="text-sm text-gray-400 dark:text-gray-500">No children linked</div>
                 </div>
-              </td>
+               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 py-1 text-xs font-medium rounded-full"
+                <span 
+                  @click="toggleFamilyStatus(family)"
+                  class="px-2 py-1 text-xs font-medium rounded-full cursor-pointer hover:opacity-80 transition"
                   :class="family.user?.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'">
                   {{ family.user?.is_active ? 'Active' : 'Inactive' }}
                 </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right">
-                <div class="flex justify-end space-x-3">
-                  <button 
-                    @click="viewFamily(family)" 
-                    class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition"
-                    title="View Details"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+               </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                <div class="flex justify-end">
+                  <button @click="toggleMenu(family.id)" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                     </svg>
                   </button>
-                  <button 
-                    @click="editFamily(family)" 
-                    class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 transition"
-                    title="Edit"
+                  
+                  <div v-if="activeMenu === family.id"
+                    class="absolute right-0 mt-8 w-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                  </button>
-                  <button 
-                    @click="deleteFamily(family.id)" 
-                    class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition"
-                    title="Delete"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
+                    <div class="flex gap-3 p-2">
+                      <button 
+                        @click="viewFamily(family)" 
+                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition"
+                        title="View Details"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                      </button>
+                      <button 
+                        @click="editFamily(family)" 
+                        class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition"
+                        title="Edit"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                      </button>
+                      <button 
+                        @click="deleteFamily(family.id)" 
+                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded transition"
+                        title="Delete"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </td>
-            </tr>
+               </td>
+             </tr>
             <tr v-if="loading && families.length === 0">
               <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">Loading...</td>
-            </tr>
+             </tr>
             <tr v-if="!loading && families.length === 0">
               <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                 <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,10 +138,10 @@
                 </svg>
                 <p>No families found</p>
                 <p class="text-sm mt-1">Click the "Add Family" button to create one.</p>
-              </td>
-            </tr>
+               </td>
+             </tr>
           </tbody>
-        </table>
+         </table>
       </div>
     </div>
 
@@ -273,7 +293,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 
@@ -284,11 +304,12 @@ const submitting = ref(false);
 const showModal = ref(false);
 const editingFamily = ref(false);
 const selectedFamily = ref<any>(null);
+const activeMenu = ref<number | null>(null);
 const showViewModal = ref(false);
-const families = ref([]);
-const students = ref([]);
+const families = ref<any[]>([]);
+const students = ref<any[]>([]);
 const form = ref({
-  id: null,
+  id: null as number | null,
   name: '',
   email: '',
   phone: '',
@@ -303,7 +324,7 @@ const fetchFamilies = async () => {
   loading.value = true;
   try {
     const response = await api.get(`/admin/families?search=${filters.value.search}`);
-    if (response.data.success) families.value = response.data.data.data;
+    if (response.data.success) families.value = response.data.data.data || response.data.data || [];
   } catch (error: any) {
     toast.error(error.response?.data?.message || 'Failed to load families');
   } finally {
@@ -314,9 +335,29 @@ const fetchFamilies = async () => {
 const fetchStudents = async () => {
   try {
     const response = await api.get('/admin/students?limit=1000');
-    if (response.data.success) students.value = response.data.data.data || response.data.data;
+    if (response.data.success) students.value = response.data.data.data || response.data.data || [];
   } catch (error) {
     toast.error('Failed to fetch students');
+  }
+};
+
+// Toggle family status
+const toggleFamilyStatus = async (family: any) => {
+  try {
+    const newStatus = !family.user?.is_active;
+    const response = await api.post(`/admin/families/${family.id}/toggle-status`, {
+      is_active: newStatus
+    });
+    
+    if (response.data.success) {
+      toast.success(`Family ${newStatus ? 'activated' : 'deactivated'} successfully`);
+      await fetchFamilies();
+    } else {
+      toast.error(response.data.message || 'Failed to update status');
+    }
+  } catch (error: any) {
+    console.error('Error toggling family status:', error);
+    toast.error(error.response?.data?.message || 'Failed to update family status');
   }
 };
 
@@ -363,6 +404,7 @@ const editFamily = (family: any) => {
     student_ids: family.students?.map((s: any) => s.id) || []
   };
   showModal.value = true;
+  activeMenu.value = null; // Close menu after action
 };
 
 const deleteFamily = async (id: number) => {
@@ -371,6 +413,7 @@ const deleteFamily = async (id: number) => {
   try { 
     await api.delete(`/admin/families/${id}`); 
     toast.success('Family deleted successfully'); 
+    activeMenu.value = null; // Close menu after action
     fetchFamilies(); 
   } catch (error: any) { 
     console.error('Delete error:', error);
@@ -381,6 +424,7 @@ const deleteFamily = async (id: number) => {
 const viewFamily = (family: any) => {
   selectedFamily.value = family;
   showViewModal.value = true;
+  activeMenu.value = null; // Close menu after action
 };
 
 const getInitials = (name: string) => {
@@ -408,8 +452,25 @@ const closeModal = () => {
   form.value = { id: null, name: '', email: '', phone: '', address: '', occupation: '', emergency_contact: '', student_ids: [] };
 };
 
+const toggleMenu = (id: number) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
+};
+
+// Handle click outside to close menu
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement;
+  if (!target.closest('.relative')) {
+    activeMenu.value = null;
+  }
+};
+
 onMounted(() => { 
+  document.addEventListener('click', handleClickOutside);
   fetchFamilies(); 
   fetchStudents(); 
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside);
 });
 </script>

@@ -115,7 +115,56 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-300">
                 {{ formatDate(user.created_at) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+
+                <button @click="toggleMenu(user.id)" class="p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                  </svg>
+                </button>
+
+                <div v-if="activeMenu === user.id"
+                  class="absolute right-0 mt-2 w-30 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-10"
+                >
+
+                <button 
+                  @click="toggleStatus(user)" 
+                  class="mr-3"
+                  :title="user.is_active ? 'Deactivate User' : 'Activate User'"
+                >
+
+                  <!-- ACTIVE (Check Icon) -->
+                  <svg v-if="user.is_active"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-5 h-5 transition-colors" :class="user.is_active ? 'text-green-600 hover:text-green-800' 
+                      : 'text-red-600 hover:text-red-800'">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+
+                  <!-- INACTIVE (Your Icon) -->
+                  <svg v-else
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-5 h-5 transition-colors" :class="user.is_active ? 'text-green-600 hover:text-green-800' : 'text-red-600 hover:text-red-800'">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+
+                </button>
                 <!-- View Button -->
                 <button @click="viewUser(user)" class="text-blue-600 hover:text-blue-900 mr-3" title="View">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,6 +184,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                   </svg>
                 </button>
+                </div>
               </td>
             </tr>
             <tr v-if="users.length === 0 && !loading">
@@ -351,10 +401,12 @@ import { ref, onMounted } from 'vue'
 import { useToast } from 'vue-toastification'
 import userApi from '@/services/userApi'
 
+
 const toast = useToast()
 const users = ref([])
 const roles = ref([])
 const loading = ref(false)
+const activeMenu = ref(null)
 const showModal = ref(false)
 const showViewModal = ref(false)
 const isEditing = ref(false)
@@ -416,7 +468,7 @@ const fetchUsers = async () => {
       page: pagination.value.current_page,
       search: filters.value.search,
       role: filters.value.role,
-      status: filters.value.status
+      ...(filters.value.status !== '' ? { status: filters.value.status } : {})
     }
     const response = await userApi.getUsers(params)
     if (response.data.success) {
@@ -535,6 +587,10 @@ const toggleStatus = async (user) => {
   }
 }
 
+const toggleMenu = (id) => {
+  activeMenu.value = activeMenu.value === id ? null : id
+}
+
 const closeModal = () => {
   showModal.value = false
   isEditing.value = false
@@ -564,6 +620,11 @@ const formatDate = (date) => {
 }
 
 onMounted(() => {
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.relative')) {
+      activeMenu.value = null
+    }
+  })
   fetchRoles()  
   fetchUsers()  
 })

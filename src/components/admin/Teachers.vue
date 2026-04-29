@@ -52,8 +52,24 @@
                   {{ teacher.user?.is_active ? 'Active' : 'Inactive' }}
                 </span>
                 </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <div class="flex space-x-3">
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                <div class="flex space-x-6">
+                  <button @click="toggleMenu(teacher.id)" class="p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+                  </button>
+
+                <div v-if="activeMenu === teacher.id"
+                  class=" absolute right-100 mt-2 w-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50"
+                  >
+                  <div class="flex gap-3 p-2">
                   <button @click="viewTeacher(teacher)" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300" title="View">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -69,6 +85,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                   </button>
+                  </div>
+                </div>
                 </div>
                 </td>
               </tr>
@@ -198,6 +216,7 @@ const loading = ref(false);
 const submitting = ref(false);
 const showModal = ref(false);
 const showViewModal = ref(false);
+const activeMenu = ref<number | null>(null);
 const editingTeacher = ref(false);
 const teachers = ref<any[]>([]);
 const selectedTeacher = ref<any>(null);
@@ -418,7 +437,17 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString();
 };
 
+const toggleMenu = (id: number) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
+};
+
 onMounted(() => {
+  document.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.relative')) {
+      activeMenu.value = null;
+    }
+  });
   fetchTeachers();
 });
 </script>

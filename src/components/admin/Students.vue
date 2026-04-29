@@ -102,6 +102,7 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Class</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Section</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Email</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -139,8 +140,33 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ student.currentClass?.name || '-' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ student.currentSection?.name || '-' }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">{{ student.user?.email }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-right">
+              <td class="px-6 py-4 whitespace-nowrap">
+                  <span 
+                    @click="toggleStudentStatus(student)"
+                    class="px-2 py-1 text-xs font-medium rounded-full cursor-pointer hover:opacity-80 transition"
+                    :class="student.user?.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'"
+                  >
+                    {{ student.user?.is_active ? 'Active' : 'Inactive' }}
+                  </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right relative">
                 <div class="flex justify-end space-x-3">
+                  <button @click="toggleMenu(student.id)" class="p-1">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.5"
+                      stroke="currentColor"
+                      class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                  </svg>
+                  </button>
+
+                      <div v-if="activeMenu === student.id"
+                      class="absolute right-0 mt-2 w-30 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-10"
+                    >
+                  <div class="flex justify-around p-2">
                   <button
                     @click="viewStudent(student)"
                     class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition"
@@ -168,12 +194,14 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                     </svg>
                   </button>
+                  </div>
+                  </div>
                 </div>
               </td>
             </tr>
 
             <tr v-if="!students.data || students.data.length === 0">
-              <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+              <td colspan="9" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                 <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                 </svg>
@@ -415,6 +443,16 @@
             <div class="text-gray-700 dark:text-gray-300">
               <span class="font-medium">Admission Date:</span> {{ formatDate(selectedStudent.admission_date) }}
             </div>
+            <div class="text-gray-700 dark:text-gray-300">
+              <span class="font-medium">Status:</span>
+              <span 
+                class="ml-2 px-2 py-1 text-xs font-medium rounded-full"
+                :class="selectedStudent.user?.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'"
+              >
+                {{ selectedStudent.user?.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+
             <div class="md:col-span-2 text-gray-700 dark:text-gray-300">
               <span class="font-medium">Address:</span> {{ selectedStudent.user?.address || 'N/A' }}
             </div>
@@ -422,11 +460,6 @@
         </div>
         
         <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
-          <button 
-            @click="editStudent(selectedStudent); showViewModal = false" 
-            class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
-            Edit Student
-          </button>
           <button @click="showViewModal = false" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition">Close</button>
         </div>
       </div>
@@ -447,6 +480,7 @@ const students = ref({ data: [], meta: null, links: {} });
 const classes = ref([]);
 const sections = ref([]);
 const search = ref("");
+const activeMenu = ref(null);
 const showModal = ref(false);
 const showViewModal = ref(false);
 const importing = ref(false);
@@ -770,8 +804,8 @@ const editStudent = (student) => {
   form.value = {
     name: student.user?.name || "",
     email: student.user?.email || "",
-    phone: student.phone || "",
-    address: student.address || "",
+    phone: student.user?.phone || "",
+    address: student.user?.address || "",
     admission_number: student.admission_number || "",
     roll_number: student.roll_number || "",
     date_of_birth: student.date_of_birth || "",
@@ -783,8 +817,21 @@ const editStudent = (student) => {
   showModal.value = true;
 };
 
+const toggleMenu = (studentId) => {
+  if (activeMenu.value === studentId) {
+    activeMenu.value = null;
+  } else {
+    activeMenu.value = studentId;
+  }
+};
+
 // Lifecycle hooks
 onMounted(() => {
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.relative')) {
+      activeMenu.value = null
+    }
+  });
   fetchStudents();
   fetchClasses();
 });
