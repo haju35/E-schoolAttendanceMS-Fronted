@@ -97,12 +97,39 @@
           </div>
         </div>
 
-        <!-- Student Distribution Chart -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Student Distribution by Class</h3>
-          <div class="h-64">
-            <canvas ref="studentDistributionCanvas"></canvas>
+<!-- Student Distribution Chart with Dropdowns -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Student Distribution</h3>
+          
+          <!-- Dropdown Filters -->
+          <div class="flex gap-3">
+            <select 
+              v-model="distributionType" 
+              @change="onDistributionTypeChange"
+              class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="class">By Class</option>
+              <option value="section">By Section</option>
+              <option value="gender">By Gender</option>
+            </select>
+            
+            <select 
+              v-model="classFilter"
+              @change="fetchStudentDistribution"
+              v-if="distributionType === 'section'"
+              class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All Classes</option>
+              <option v-for="classItem in availableClasses" :key="classItem.id" :value="classItem.id">
+                {{ classItem.name }}
+              </option>
+            </select>
           </div>
+        </div>
+        
+        <div class="h-64">
+          <canvas ref="studentDistributionCanvas"></canvas>
         </div>
       </div>
 
@@ -187,10 +214,12 @@
       </div>
     </div>
   </div>
+  </div>
 </template>
 
+
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, nextTick, onBeforeUnmount, watch } from 'vue';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 import Chart from 'chart.js/auto';
@@ -209,7 +238,12 @@ let attendanceChart: Chart | null = null;
 let studentDistributionChart: Chart | null = null;
 let monthlyAttendanceChart: Chart | null = null;
 
-// Dashboard stats - REMOVED all static data
+// Distribution filters
+const distributionType = ref('class');
+const classFilter = ref('');
+const availableClasses = ref<Array<{id: number, name: string}>>([]);
+
+// Dashboard stats
 const stats = ref({
   total_students: 0,
   active_students: 0,
@@ -222,7 +256,7 @@ const stats = ref({
   late_today: 0
 });
 
-// Chart data - initialized as empty arrays, will be populated from API
+// Chart data
 const attendanceData = ref<number[]>([]);
 const classData = ref<{ labels: string[]; counts: number[] }>({
   labels: [],
@@ -255,6 +289,97 @@ const latePercentage = computed(() => {
   if (stats.value.total_students === 0) return 0;
   return (stats.value.late_today / stats.value.total_students) * 100;
 });
+
+// Helper functions for chart labels
+const getDistributionLabel = () => {
+  const labels: Record<string, string> = {
+    class: 'by Class',
+    section: 'by Section',
+    gender: 'by Gender',
+    grade: 'by Grade Level',
+    house: 'by House'
+  };
+  return labels[distributionType.value] || 'Distribution';
+};
+
+const getXAxisLabel = () => {
+  const labels: Record<string, string> = {
+    class: 'Classes',
+    section: 'Sections',
+    gender: 'Gender',
+    grade: 'Grade Levels',
+    house: 'Houses'
+  };
+  return labels[distributionType.value] || 'Categories';
+};
+
+const generateColors = (count: number) => {
+  const baseColors = [
+    'rgba(99, 102, 241, 0.7)',
+    'rgba(34, 197, 94, 0.7)',
+    'rgba(234, 179, 8, 0.7)',
+    'rgba(239, 68, 68, 0.7)',
+    'rgba(168, 85, 247, 0.7)',
+    'rgba(236, 72, 153, 0.7)',
+    'rgba(6, 182, 212, 0.7)',
+    'rgba(245, 158, 11, 0.7)',
+  ];
+  
+  const colors = [];
+  for (let i = 0; i < count; i++) {
+    colors.push(baseColors[i % baseColors.length]);
+  }
+  return colors;
+};
+
+// Fetch available classes for filter dropdown
+const fetchAvailableClasses = async () => {
+  try {
+    const response = await api.get('/admin/classes/list');
+    if (response.data && response.data.success) {
+      availableClasses.value = response.data.data;
+    }
+  } catch (err) {
+    console.error('Error fetching classes:', err);
+  }
+};
+
+// Fetch student distribution based on selected type and filter
+const fetchStudentDistribution = async () => {
+  if (!studentDistributionCanvas.value) return;
+  
+  try {
+    let endpoint = '/admin/analytics/student-distribution';
+    let params: any = { type: distributionType.value };
+    
+    if (distributionType.value === 'section' && classFilter.value) {
+      params.class_id = classFilter.value;
+    }
+    
+    const response = await api.get(endpoint, { params });
+    
+    if (response.data && response.data.success) {
+      const data = response.data.data;
+      classData.value = {
+        labels: data.map((item: any) => item.label),
+        counts: data.map((item: any) => item.count)
+      };
+      initStudentDistributionChart();
+    }
+  } catch (err) {
+    console.error('Error fetching distribution:', err);
+    toast.error('Failed to load distribution data');
+  }
+};
+
+// Handle distribution type change
+const onDistributionTypeChange = () => {
+  // Reset class filter when switching from section
+  if (distributionType.value !== 'section') {
+    classFilter.value = '';
+  }
+  fetchStudentDistribution();
+};
 
 // Initialize Attendance Trend Chart
 const initAttendanceTrendChart = () => {
@@ -313,57 +438,131 @@ const initAttendanceTrendChart = () => {
   });
 };
 
-// Initialize Student Distribution Chart
+// Initialize Student Distribution Chart (UPDATED to handle different chart types)
 const initStudentDistributionChart = () => {
-  if (!studentDistributionCanvas.value || classData.value.labels.length === 0) return;
+  if (!studentDistributionCanvas.value) return;
   
   const ctx = studentDistributionCanvas.value.getContext('2d');
   if (!ctx) return;
   
   if (studentDistributionChart) studentDistributionChart.destroy();
   
-  studentDistributionChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: classData.value.labels,
-      datasets: [{
-        label: 'Number of Students',
-        data: classData.value.counts,
-        backgroundColor: 'rgba(99, 102, 241, 0.7)',
-        borderColor: 'rgb(99, 102, 241)',
-        borderWidth: 2,
-        borderRadius: 8,
-        barPercentage: 0.7,
-        categoryPercentage: 0.8
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: { font: { size: 12 } }
-        },
-        tooltip: {
-          callbacks: {
-            label: (context) => `${context.dataset.label}: ${context.raw} students`
-          }
-        }
+  const hasData = classData.value.labels.length > 0 && classData.value.counts.length > 0;
+  
+  if (!hasData) {
+    // Show empty chart or message
+    studentDistributionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['No Data'],
+        datasets: [{
+          label: 'Number of Students',
+          data: [0],
+          backgroundColor: 'rgba(99, 102, 241, 0.7)',
+          borderColor: 'rgb(99, 102, 241)',
+          borderWidth: 2
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: { display: true, text: 'Number of Students', font: { size: 12 } },
-          grid: { color: 'rgba(0,0,0,0.05)' }
-        },
-        x: {
-          title: { display: true, text: 'Class', font: { size: 12 } },
-          grid: { display: false }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: { enabled: false }
         }
       }
-    }
-  });
+    });
+    return;
+  }
+  
+  // Choose chart type based on number of items
+  const chartType = classData.value.labels.length > 6 ? 'bar' : 'pie';
+  
+  if (chartType === 'pie') {
+    studentDistributionChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: classData.value.labels,
+        datasets: [{
+          label: `Student Distribution ${getDistributionLabel()}`,
+          data: classData.value.counts,
+          backgroundColor: generateColors(classData.value.labels.length),
+          borderColor: '#fff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { font: { size: 11 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => {
+                const label = context.label || '';
+                const value = context.raw;
+                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} students (${percentage}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  } else {
+    studentDistributionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: classData.value.labels,
+        datasets: [{
+          label: `Student Distribution ${getDistributionLabel()}`,
+          data: classData.value.counts,
+          backgroundColor: 'rgba(99, 102, 241, 0.7)',
+          borderColor: 'rgb(99, 102, 241)',
+          borderWidth: 2,
+          borderRadius: 8,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { font: { size: 12 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: (context: any) => {
+                const value = context.raw;
+                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${context.dataset.label}: ${value} students (${percentage}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Number of Students', font: { size: 12 } },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            ticks: { stepSize: 1 }
+          },
+          x: {
+            title: { display: true, text: getXAxisLabel(), font: { size: 12 } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
 };
 
 // Initialize Monthly Attendance Chart
@@ -478,12 +677,13 @@ const fetchDashboardData = async () => {
         late_today: data.late_today || 0
       };
       
-      // Update chart data from API (REAL DATA, NO STATIC)
+      // Update chart data from API
       if (data.attendance_trend && data.attendance_trend.length > 0) {
         attendanceData.value = data.attendance_trend;
       }
       
-      if (data.class_distribution && data.class_distribution.length > 0) {
+      // Only set initial class distribution if we're on class view
+      if (distributionType.value === 'class' && data.class_distribution && data.class_distribution.length > 0) {
         classData.value = {
           labels: data.class_distribution.map((c: any) => c.class_name),
           counts: data.class_distribution.map((c: any) => c.count)
@@ -520,7 +720,13 @@ onBeforeUnmount(() => {
   if (monthlyAttendanceChart) monthlyAttendanceChart.destroy();
 });
 
+// Watch for distribution type changes
+watch(distributionType, () => {
+  fetchStudentDistribution();
+});
+
 onMounted(() => {
   fetchDashboardData();
+  fetchAvailableClasses(); 
 });
 </script>

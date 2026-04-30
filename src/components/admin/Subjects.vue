@@ -69,8 +69,23 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                 {{ formatDate(subject.created_at) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right">
-                <div class="flex justify-end space-x-3">
+              <td class="px-6 py-4 whitespace-nowrap text-right relative">
+                <div class="flex justify-end">
+                  <button @click.stop="toggleMenu(subject.id)" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+                  </button>
+                  <div v-if="activeMenu === subject.id"
+                    class="absolute right-0 mt-8 w-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50"
+                  >
+                  <div class="py-1">
                   <button 
                     @click="viewSubject(subject)" 
                     class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition"
@@ -98,6 +113,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
+                </div>
+                </div>
                 </div>
               </td>
             </tr>
@@ -239,25 +256,9 @@
               </span>
             </div>
           </div>
-          
-          <div v-if="!selectedSubject.classes || selectedSubject.classes.length === 0" class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-            <div class="flex items-start">
-              <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p class="text-sm text-yellow-800 dark:text-yellow-300">
-                This subject is not assigned to any class yet.
-              </p>
-            </div>
-          </div>
         </div>
         
         <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
-          <button 
-            @click="editSubject(selectedSubject); showViewModal = false" 
-            class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
-            Edit Subject
-          </button>
           <button @click="showViewModal = false" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition">Close</button>
         </div>
       </div>
@@ -267,7 +268,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import api from '@/services/api';
+
 import { useToast } from 'vue-toastification';
 
 const toast = useToast();
@@ -276,12 +278,11 @@ const showModal = ref(false);
 const showViewModal = ref(false);
 const submitting = ref(false);
 const editingSubject = ref(false);
+const activeMenu = ref<number | null>(null);
 const selectedSubject = ref<any>(null);
 const filters = ref({ search: '' });
+const API = 'admin/subjects';
 
-const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/admin/subjects';
-const token = localStorage.getItem('access_token');
-const headers = { Authorization: `Bearer ${token}` };
 
 const form = ref({
   id: null,
@@ -318,8 +319,7 @@ const fetchSubjects = async () => {
     if (filters.value.search) {
       url += `?search=${filters.value.search}`;
     }
-    const res = await axios.get(url, { headers });
-    
+    const res = await api.get(url);
     if (res.data.data?.data) {
       subjects.value = res.data.data.data;
     } else if (Array.isArray(res.data.data)) {
@@ -370,10 +370,10 @@ const saveSubject = async () => {
   try {
     let response;
     if (editingSubject.value) {
-      response = await axios.put(`${API}/${form.value.id}`, form.value, { headers });
+      response = await api.put(`${API}/${form.value.id}`, form.value);
       toast.success(response.data.message || 'Subject updated successfully');
     } else {
-      response = await axios.post(API, form.value, { headers });
+      response = await api.post(API, form.value);
       toast.success(response.data.message || 'Subject created successfully');
     }
 
@@ -392,7 +392,7 @@ const deleteSubject = async (id: number) => {
   if (!confirm('Delete this subject? This action cannot be undone.')) return;
 
   try {
-    const res = await axios.delete(`${API}/${id}`, { headers });
+    const res = await api.delete(`${API}/${id}`);
     toast.success(res.data.message || 'Subject deleted successfully');
     await fetchSubjects();
   } catch (err: any) {
@@ -408,7 +408,17 @@ const closeModal = () => {
   form.value = { id: null, name: '', code: '' };
 };
 
+const toggleMenu = (id: number) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
+};
+
 onMounted(() => {
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.relative')) {
+      activeMenu.value = null;
+    }
+  });
   fetchSubjects();
 });
 </script>

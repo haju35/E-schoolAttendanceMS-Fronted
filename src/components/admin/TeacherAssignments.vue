@@ -120,8 +120,23 @@
                   {{ assignment.academic_year }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-right">
+              <td class="px-6 py-4 text-right relative">
                 <div class="flex justify-end space-x-3">
+                   <button @click.stop="toggleMenu(assignment.id)" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+                  </button>
+                  <div v-if="activeMenu === assignment.id"
+                    class="absolute right-0 mt-8 w-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50"
+                  >
+                  <div class="py-1">
                   <button @click="editAssignment(assignment)" class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400" title="Edit">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -132,6 +147,8 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
+                  </div>
+                  </div>
                 </div>
               </td>
             </tr>
@@ -238,6 +255,7 @@ const loading = ref(false);
 const submitting = ref(false);
 const showModal = ref(false);
 const editingAssignment = ref(false);
+const activeMenu = ref<number | null>(null);
 
 const assignments = ref<any[]>([]);
 const teachers = ref<any[]>([]);
@@ -383,7 +401,17 @@ const openAddModal = () => {
   showModal.value = true;
 };
 
+const toggleMenu = (id: number) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
+};
+
 onMounted(() => {
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    if (!target.closest('.relative')) {
+      activeMenu.value = null;
+    }
+  });
   fetchAssignments();
   fetchOptions();
 });

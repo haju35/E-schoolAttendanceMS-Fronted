@@ -280,11 +280,6 @@
         </div>
         
         <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
-          <button 
-            @click="editFamily(selectedFamily); showViewModal = false" 
-            class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
-            Edit Family
-          </button>
           <button @click="showViewModal = false" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition">Close</button>
         </div>
       </div>

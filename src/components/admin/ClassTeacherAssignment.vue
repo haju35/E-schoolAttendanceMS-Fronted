@@ -67,7 +67,6 @@
       <input
         type="text"
         v-model="search"
-        @input="filterTeachers"
         placeholder="Search by teacher name, class, or section..."
         class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
       />
@@ -120,12 +119,29 @@
                   {{ item.academic_year || '-' }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-right">
+              <td class="px-6 py-4 text-right relative">
+                 <div class="flex justify-end space-x-3">
+                   <button @click.stop="toggleMenu(item.id)" class="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-5 h-5 text-gray-600 hover:text-gray-900">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM17.25 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                    </svg>
+                  </button>
+
+                <div v-if="activeMenu === item.id"
+                     class="absolute right-0 mt-8 w-auto bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50"
+                >
+                <div class="py-1">
                 <button @click="editClassTeacher(item)" class="text-yellow-600 hover:text-yellow-800 dark:text-yellow-400" title="Edit">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
-                  </button>
+                </button>
                 <button 
                   @click="removeClassTeacher(item.id)" 
                   class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
@@ -135,6 +151,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
+                </div>
+                </div>
+                </div>
               </td>
             </tr>
 
@@ -207,6 +226,7 @@
             <select 
               v-model="form.section_id" 
               required
+              :disabled="!form.class_room_id"
               class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
             >
               <option value="" disabled>Select a section</option>
@@ -214,6 +234,7 @@
                 {{ section.name }} (Capacity: {{ section.capacity || 'Unlimited' }})
               </option>
             </select>
+            <p v-if="!form.class_room_id" class="text-xs text-gray-500 mt-1">Please select a class first</p>
           </div>
 
           <!-- Academic Year input -->
@@ -273,12 +294,14 @@ const loading = ref(false);
 const submitting = ref(false);
 const showAssignModal = ref(false);
 const editingClassTeacher = ref(false);
-const editingId = ref(null); // Add this
+const editingId = ref(null);
+const activeMenu = ref<number | null>(null);
 const search = ref('');
+const allSections = ref<any[]>([]);
 const classTeachers = ref<any[]>([]);
 const teachers = ref<any[]>([]);
 const classes = ref<any[]>([]);
-const sections = ref<any[]>([]);
+const sectionsForCurrentClass = ref<any[]>([]);
 
 const form = ref({
   teacher_id: '',
@@ -322,9 +345,11 @@ const availableTeachers = computed(() => {
   }
 });
 
+
+
 const filteredSections = computed(() => {
   if (!form.value.class_room_id) return [];
-  return sections.value.filter(s => s.class_room_id === parseInt(form.value.class_room_id));
+  return sectionsForCurrentClass.value.filter(s => s.class_room_id === parseInt(form.value.class_room_id));
 });
 
 const uniqueClassesCount = computed(() => {
@@ -384,7 +409,9 @@ const fetchSections = async () => {
   try {
     const response = await api.get('/admin/sections?limit=all');
     if (response.data.success) {
-      sections.value = response.data.data.data || response.data.data || [];
+      const fetchedSections = response.data.data.data || response.data.data || [];
+      allSections.value = fetchedSections; 
+      sectionsForCurrentClass.value = fetchedSections; 
     }
   } catch (error: any) {
     console.error('Failed to load sections', error);
@@ -393,6 +420,14 @@ const fetchSections = async () => {
 
 const onClassChange = () => {
   form.value.section_id = '';
+
+  if(form.value.class_room_id) {
+    sectionsForCurrentClass.value = allSections.value.filter(
+      s => s.class_room_id === parseInt(form.value.class_room_id)
+    );
+  } else {
+    sectionsForCurrentClass.value = [];
+  }
 };
 
 const assignClassTeacher = async () => {
@@ -442,18 +477,24 @@ const assignClassTeacher = async () => {
   }
 };
 
-const editClassTeacher = (item: any) => {
+const editClassTeacher =(item: any) => {
   console.log('Editing item:', item);
   editingClassTeacher.value = true;
-  editingId.value = item.id; // Store the ID
+  editingId.value = item.id; 
   form.value = {
     teacher_id: item.teacher_id?.toString() || '',
     class_room_id: item.class_room_id?.toString() || '',
     section_id: item.section_id?.toString() || '',
     academic_year: item.academic_year || new Date().getFullYear().toString()
   };
+  if (item.class_room_id) {
+    sectionsForCurrentClass.value = allSections.value.filter(
+      s => s.class_room_id === item.class_room_id
+    );
+  }
   showAssignModal.value = true;
 };
+
 
 const removeClassTeacher = async (assignmentId: number) => {
   if (!confirm('Are you sure you want to remove this teacher as class teacher?')) return;
@@ -497,12 +538,15 @@ const closeModal = () => {
   };
 };
 
-const filterTeachers = () => {
-  // Handled by computed property
+const toggleMenu = (id: number) => {
+  activeMenu.value = activeMenu.value === id ? null : id;
 };
 
 // Lifecycle
 onMounted(() => {
+  document.addEventListener('click', () => {
+    activeMenu.value = null;
+  });
   fetchClassTeachers();
   fetchTeachers();
   fetchClasses();

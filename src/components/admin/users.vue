@@ -57,7 +57,7 @@
         <div class="flex items-end">
           <button 
             @click="clearFilters"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="px-2 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             Clear Filters
           </button>
@@ -200,33 +200,80 @@
           </tbody>
         </table>
       </div>
-      
-      <!-- Pagination -->
-      <div v-if="users.length > 0" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex justify-between items-center">
+      <!-- Pagination with Ellipsis -->
+      <div v-if="pagination.total > 0" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div class="text-sm text-gray-700 dark:text-gray-300">
             Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total }} users
           </div>
-          <div class="flex gap-2">
+          
+          <div class="flex items-center gap-1">
+            <!-- Previous Button -->
             <button 
               @click="changePage(pagination.current_page - 1)"
-              :disabled="!pagination.prev_page_url"
-              class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+              :disabled="pagination.current_page === 1"
+              class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
             >
-              Previous
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
             </button>
-            <span class="px-3 py-1">Page {{ pagination.current_page }} of {{ pagination.last_page }}</span>
+            
+            <!-- Page Numbers -->
+            <div class="flex items-center gap-1">
+              <!-- First Page -->
+              <button
+                v-if="pagination.current_page > 3"
+                @click="changePage(1)"
+                class="px-3 py-1 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+              >
+                1
+              </button>
+              
+              <!-- Ellipsis (Left) -->
+              <span v-if="pagination.current_page > 3" class="px-2 text-gray-500">...</span>
+              
+              <!-- Pages around current page -->
+              <template v-for="page in getVisiblePages()" :key="page">
+                <button
+                  @click="changePage(page)"
+                  :class="[
+                    'px-3 py-1 border rounded-md transition-colors',
+                    page === pagination.current_page
+                      ? 'bg-indigo-600 text-white border-indigo-600'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                  ]"
+                >
+                  {{ page }}
+                </button>
+              </template>
+              
+              <!-- Ellipsis (Right) -->
+              <span v-if="pagination.current_page < pagination.last_page - 2" class="px-2 text-gray-500">...</span>
+              
+              <!-- Last Page -->
+              <button
+                v-if="pagination.current_page < pagination.last_page - 2"
+                @click="changePage(pagination.last_page)"
+                class="px-3 py-1 border rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+              >
+                {{ pagination.last_page }}
+              </button>
+            </div>
+            
+            <!-- Next Button -->
             <button 
               @click="changePage(pagination.current_page + 1)"
-              :disabled="!pagination.next_page_url"
-              class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700"
+              :disabled="pagination.current_page === pagination.last_page"
+              class="px-3 py-1 border rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
             >
-              Next
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
             </button>
           </div>
         </div>
       </div>
-    </div>
 
     <!-- View User Modal -->
     <div v-if="showViewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click.self="closeViewModal">
@@ -302,12 +349,7 @@
             >
               Close
             </button>
-            <button 
-              @click="editFromView"
-              class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
-            >
-              Edit User
-            </button>
+
           </div>
         </div>
       </div>
@@ -319,6 +361,7 @@
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ isEditing ? 'Edit User' : 'Add New User' }}</h3>
           <button @click="closeModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">&times;</button>
+        </div>
         </div>
         
         <form @submit.prevent="saveUser">
@@ -451,6 +494,34 @@ const fetchRoles = async () => {
   } catch (error) {
     console.error('Error fetching roles:', error)
   }
+}
+
+// Add this function to your script setup
+const getVisiblePages = () => {
+  const current = pagination.value.current_page
+  const last = pagination.value.last_page
+  const delta = 2
+  
+  let pages = []
+  
+  let start = Math.max(2, current - delta)
+  let end = Math.min(last - 1, current + delta)
+  
+  if (current - delta <= 2) {
+    start = 2
+    end = Math.min(last - 1, start + (delta * 2))
+  }
+  
+  if (current + delta >= last - 1) {
+    end = last - 1
+    start = Math.max(2, end - (delta * 2))
+  }
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
 }
 
 const debouncedSearch = () => {

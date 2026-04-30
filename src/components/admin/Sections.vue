@@ -322,15 +322,85 @@
 
         <div class="flex justify-end space-x-3 p-6 border-t dark:border-gray-700">
           <button 
-            @click="editSection(selectedSection); showViewModal = false"
-            class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition">
-            Edit Section
-          </button>
-          <button 
             @click="showViewModal = false"
             class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
             Close
           </button>
+        </div>
+      </div>
+    </div>
+    <div v-if="showTransferModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center" @click.self="closeTransferModal">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div class="flex justify-between items-center p-6 border-b dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Transfer Students
+          </h3>
+          <button @click="closeTransferModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="p-6">
+          <div class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-500 mt-0.5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                  This section has {{ sectionToDelete?.student_count || 0 }} student(s)
+                </p>
+                <p class="text-sm text-yellow-700 dark:text-yellow-400 mt-1">
+                  Please select another section to transfer them to before deleting.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Select Target Section *
+            </label>
+            <select 
+              v-model="transferForm.new_section_id"
+              required
+              class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="" disabled>Choose a section...</option>
+              <option 
+                v-for="section in transferForm.available_sections" 
+                :key="section.id" 
+                :value="section.id"
+              >
+                {{ section.name }} 
+                <span v-if="section.capacity">(Capacity: {{ section.capacity }})</span>
+              </option>
+            </select>
+          </div>
+
+          <div v-if="transferForm.new_section_id" class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <p class="text-sm text-blue-800 dark:text-blue-300">
+              <strong>Note:</strong> All students from this section will be moved to the selected section.
+            </p>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
+            <button 
+              @click="closeTransferModal"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="confirmTransferAndDelete"
+              :disabled="!transferForm.new_section_id || transferSubmitting"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+            >
+              {{ transferSubmitting ? 'Moving...' : 'Transfer & Delete Section' }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -352,6 +422,9 @@ const activeMenu = ref<number | null>(null);
 const showViewModal = ref(false);
 const editing = ref(false);
 const sections = ref<any[]>([]);
+const showTransferModal = ref(false);
+const sectionToDelete = ref<any>(null);
+  const transferSubmitting = ref(false);
 const classes = ref<any[]>([]);
 const selectedSection = ref<any>(null);
 
@@ -363,14 +436,18 @@ const form = ref({
   capacity: ''
 });
 
-// Bulk section form (for adding multiple sections)
 const bulkForm = ref({
   class_room_id: '',
   sections: [{ name: '' }],
   capacity: ''
 });
 
-// Format date and time
+const transferForm = ref({
+  section_id: null,
+  new_section_id: '',
+  available_sections: []
+});
+
 const formatDateTime = (date: string) => {
   if (!date) return 'N/A';
   return new Date(date).toLocaleDateString('en-US', { 
@@ -438,7 +515,7 @@ const openAddModal = () => {
 const viewSection = (section: any) => {
   selectedSection.value = section;
   showViewModal.value = true;
-  activeMenu.value = null; // Close menu after action
+  activeMenu.value = null;
 };
 
 // Edit section
@@ -451,7 +528,7 @@ const editSection = (section: any) => {
     capacity: section.capacity || ''
   };
   showModal.value = true;
-  activeMenu.value = null; // Close menu after action
+  activeMenu.value = null;
 };
 
 // Save section (create or update)
@@ -460,7 +537,19 @@ const saveSection = async () => {
   
   try {
     if (editing.value) {
-      // Update single section
+      // Update single section - Check for duplicates
+      const existingSection = sections.value.find(s => 
+        s.class_room_id === parseInt(form.value.class_room_id) && 
+        s.name.toLowerCase() === form.value.name.toLowerCase() &&
+        s.id !== form.value.id
+      );
+      
+      if (existingSection) {
+        toast.error(`Section "${form.value.name}" already exists in this class`);
+        submitting.value = false;
+        return;
+      }
+      
       const response = await api.put(`/admin/sections/${form.value.id}`, {
         class_room_id: parseInt(form.value.class_room_id),
         name: form.value.name,
@@ -478,6 +567,7 @@ const saveSection = async () => {
       // Create multiple sections
       if (!bulkForm.value.class_room_id) {
         toast.error('Please select a class');
+        submitting.value = false;
         return;
       }
       
@@ -485,17 +575,53 @@ const saveSection = async () => {
       
       if (validSections.length === 0) {
         toast.error('Please enter at least one section name');
+        submitting.value = false;
         return;
       }
       
+      // Check for duplicates within the same batch
+      const nameSet = new Set();
+      const duplicateNamesInBatch = [];
+      
+      for (const section of validSections) {
+        const normalizedName = section.name.trim().toLowerCase();
+        if (nameSet.has(normalizedName)) {
+          duplicateNamesInBatch.push(section.name);
+        } else {
+          nameSet.add(normalizedName);
+        }
+      }
+      
+      if (duplicateNamesInBatch.length > 0) {
+        toast.error(`Duplicate section names in the same batch: ${duplicateNamesInBatch.join(', ')}`);
+        submitting.value = false;
+        return;
+      }
+      
+      // Check against existing sections in the database
+      const classId = parseInt(bulkForm.value.class_room_id);
+      const existingSections = sections.value.filter(s => s.class_room_id === classId);
+      const existingNames = existingSections.map(s => s.name.toLowerCase());
+      
+      const duplicatesInDb = validSections.filter(s => 
+        existingNames.includes(s.name.trim().toLowerCase())
+      );
+      
+      if (duplicatesInDb.length > 0) {
+        toast.error(`These sections already exist in this class: ${duplicatesInDb.map(s => s.name).join(', ')}`);
+        submitting.value = false;
+        return;
+      }
+      
+      // Create sections one by one
       let successCount = 0;
       let errorCount = 0;
+      const errors = [];
       
-      // Create each section individually
       for (const section of validSections) {
         try {
           const response = await api.post('/admin/sections', {
-            class_room_id: parseInt(bulkForm.value.class_room_id),
+            class_room_id: classId,
             name: section.name.trim(),
             capacity: bulkForm.value.capacity ? parseInt(bulkForm.value.capacity) : null
           });
@@ -504,16 +630,17 @@ const saveSection = async () => {
             successCount++;
           } else {
             errorCount++;
-            console.error(`Failed to create section ${section.name}:`, response.data.message);
+            errors.push(section.name);
           }
         } catch (err: any) {
           errorCount++;
+          errors.push(section.name);
           console.error(`Error creating section ${section.name}:`, err.response?.data?.message);
         }
       }
       
       if (successCount > 0) {
-        toast.success(`Created ${successCount} section(s) successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}`);
+        toast.success(`Created ${successCount} section(s) successfully${errorCount > 0 ? `, ${errorCount} failed: ${errors.join(', ')}` : ''}`);
         closeModal();
         await fetchSections();
       } else {
@@ -530,22 +657,72 @@ const saveSection = async () => {
 
 // Delete section
 const deleteSection = async (id: number) => {
-  if (!confirm('Are you sure you want to delete this section? This may affect student records.')) return;
+  activeMenu.value = null;
   
   try {
     const response = await api.delete(`/admin/sections/${id}`);
+    
     if (response.data.success) {
-      toast.success('Section deleted successfully');
-      activeMenu.value = null; // Close menu after action
+      toast.success(response.data.message);
       await fetchSections();
-    } else {
-      toast.error(response.data.message || 'Delete failed');
     }
   } catch (error: any) {
-    console.error('Delete error:', error);
-    toast.error(error.response?.data?.message || 'Failed to delete section');
+    if (error.response?.status === 422 && error.response?.data?.requires_transfer) {
+      // Section has students, needs transfer
+      const sectionToDeleteInfo = sections.value.find(s => s.id === id);
+      
+      sectionToDelete.value = {
+        id: id,
+        student_count: error.response.data.student_count,
+        name: sectionToDeleteInfo?.name || 'this section'
+      };
+      
+      transferForm.value = {
+        section_id: id,
+        new_section_id: '',
+        available_sections: error.response.data.available_sections || []
+      };
+      
+      showTransferModal.value = true;
+    } else {
+      console.error('Delete error:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete section');
+    }
   }
 };
+
+
+const confirmTransferAndDelete = async () => {
+  if (!transferForm.value.new_section_id) {
+    toast.error('Please select a target section');
+    return;
+  }
+  
+  transferSubmitting.value = true;
+  
+  try {
+    const response = await api.delete(`/admin/sections/${transferForm.value.section_id}`, {
+      data: {
+        new_section_id: transferForm.value.new_section_id
+      }
+    });
+    
+    if (response.data.success) {
+      toast.success(response.data.message);
+      closeTransferModal();
+      await fetchSections();
+    } else {
+      toast.error(response.data.message || 'Failed to delete section');
+    }
+  } catch (error: any) {
+    console.error('Transfer delete error:', error);
+    toast.error(error.response?.data?.message || 'Failed to transfer students and delete section');
+  } finally {
+    transferSubmitting.value = false;
+  }
+};
+
+
 
 // Close modal
 const closeModal = () => {

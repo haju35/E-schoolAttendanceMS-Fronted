@@ -52,7 +52,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
                 <button @click.stop="toggleMenu(year.id)" 
                   class="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white" 
                     viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M6 12h.01M12 12h.01M18 12h.01" />
@@ -63,7 +63,7 @@
                   <div class="flex justify-around p-2">
                     <!-- View Button -->
                     <button @click="viewYear(year)"
-                      class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 transition p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded" 
+                      class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition p-2 hover:bg-gray-100 dark:hover:bg-gray-600 rounded" 
                       title="View">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
