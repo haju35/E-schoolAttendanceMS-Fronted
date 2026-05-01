@@ -361,8 +361,8 @@
         <div class="flex justify-between items-center mb-4">
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">{{ isEditing ? 'Edit User' : 'Add New User' }}</h3>
           <button @click="closeModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">&times;</button>
-        </div>
-        </div>
+      </div>
+       
         
         <form @submit.prevent="saveUser">
           <div class="mb-4">
@@ -436,6 +436,7 @@
         </form>
       </div>
     </div>
+  </div>
   </div>
 </template>
 
