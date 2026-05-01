@@ -189,15 +189,49 @@
               <textarea v-model="form.address" rows="2" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"></textarea>
             </div>
             
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link Children (Select students)</label>
-              <select v-model="form.student_ids" multiple class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white" size="4">
-                <option v-for="student in students" :key="student.id" :value="student.id">
-                  {{ student.user?.name }} ({{ student.admission_number }})
-                </option>
-              </select>
-              <p class="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Link Children (Select students)</label>
+            
+            <!-- Search within students -->
+            <input 
+              type="text" 
+              v-model="studentSearch" 
+              placeholder="Search students..." 
+              class="w-full mb-2 px-3 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-white"
+            />
+            
+            <!-- Checkbox list for multi-select -->
+            <div class="border border-gray-300 dark:border-gray-600 rounded-lg max-h-48 overflow-y-auto p-2">
+              <div 
+                v-for="student in filteredStudents" 
+                :key="student.id" 
+                class="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded cursor-pointer"
+                @click="toggleStudentSelection(student.id)"
+              >
+                <input 
+                  type="checkbox" 
+                  :value="student.id"
+                  v-model="form.student_ids"
+                  @click.stop
+                  class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                />
+                <label class="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex-1" @click.stop>
+                  <span class="font-medium">{{ student.user?.name }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                    ({{ student.admission_number }}) - {{ student.currentClass?.name || 'N/A' }}
+                  </span>
+                </label>
+              </div>
+              <div v-if="filteredStudents.length === 0" class="text-center text-gray-500 dark:text-gray-400 py-2">
+                No students found
+              </div>
             </div>
+            
+            <!-- Show selected count -->
+            <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              Selected: {{ form.student_ids.length }} student(s)
+            </div>
+          </div>
           </div>
           
           <div class="flex justify-end space-x-3 pt-4 border-t dark:border-gray-700">
@@ -288,7 +322,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 
@@ -303,6 +337,7 @@ const activeMenu = ref<number | null>(null);
 const showViewModal = ref(false);
 const families = ref<any[]>([]);
 const students = ref<any[]>([]);
+const studentSearch = ref('');
 const form = ref({
   id: null as number | null,
   name: '',
@@ -456,6 +491,25 @@ const handleClickOutside = (event: MouseEvent) => {
   const target = event.target as HTMLElement;
   if (!target.closest('.relative')) {
     activeMenu.value = null;
+  }
+};
+
+const filteredStudents = computed(() => {
+  if (!studentSearch.value) return students.value;
+  const searchLower = studentSearch.value.toLowerCase();
+  return students.value.filter(student => 
+    student.user?.name?.toLowerCase().includes(searchLower) ||
+    student.admission_number?.toLowerCase().includes(searchLower)
+  );
+});
+
+
+const toggleStudentSelection = (studentId: number) => {
+  const index = form.value.student_ids.indexOf(studentId);
+  if (index === -1) {
+    form.value.student_ids.push(studentId);
+  } else {
+    form.value.student_ids.splice(index, 1);
   }
 };
 
