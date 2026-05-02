@@ -722,6 +722,16 @@ const confirmTransferAndDelete = async () => {
   }
 };
 
+const closeTransferModal = () => {
+  showTransferModal.value = false;
+  sectionToDelete.value = null;
+  transferForm.value = {
+    section_id: null,
+    new_section_id: '',
+    available_sections: []
+  };
+};
+
 
 
 // Close modal
