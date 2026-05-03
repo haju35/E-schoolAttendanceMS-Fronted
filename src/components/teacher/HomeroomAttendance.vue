@@ -354,7 +354,7 @@ const loadClassStudents = async () => {
         return record.status && 
                record.status !== 'pending' && 
                record.status !== '' &&
-               record.date === classAttendanceDate.value  // ← ADD DATE CHECK
+               record.date === classAttendanceDate.value 
       })
       
       // Set hasExistingAttendance based on valid records for THIS date
@@ -422,67 +422,6 @@ const updateClassStatus = (studentId: number, status: string) => {
 const enableEditClassAttendance = () => {
   isEditingClassAttendance.value = true
   toast.info('Edit mode enabled. You can now modify attendance.')
-}
-
-const submitClassAttendance = async () => {
-  if (classStudents.value.length === 0) {
-    toast.error('No students to submit')
-    return
-  }
-  
-  if (!selectedClassIdForClass.value || !selectedSectionIdForClass.value) {
-    toast.error('Please select class and section')
-    return
-  }
-  
-  submittingClass.value = true
-  try {
-    const attendanceArray = classStudents.value.map(student => ({
-      student_id: student.id,
-      status: student.status,
-      remarks: student.remarks || ''
-    }))
-    
-    const payload = {
-      date: classAttendanceDate.value,
-      class_room_id: selectedClassIdForClass.value,
-      section_id: selectedSectionIdForClass.value,
-      attendance: attendanceArray
-    }
-    
-    console.log('Submitting payload:', JSON.stringify(payload, null, 2))
-    
-    const response = await api.post('/teacher/attendance/class', payload)
-    
-    if (response.data.success) {
-      toast.success(`Successfully saved attendance for ${attendanceArray.length} students!`)
-      hasExistingAttendance.value = true
-      isEditingClassAttendance.value = false
-      
-      await loadClassStudents()
-      
-      const viewHistory = confirm('Attendance saved! Do you want to view the attendance history?')
-      if (viewHistory) {
-        router.push('/homeroom/view-attendance')
-      }
-    } else {
-      toast.error(response.data.message || 'Failed to submit attendance')
-    }
-  } catch (error: any) {
-    console.error('Submit error:', error)
-    
-    if (error.response?.data?.errors) {
-      const errors = error.response.data.errors
-      const errorMessages = Object.values(errors).flat().join('\n')
-      toast.error(errorMessages)
-    } else if (error.response?.data?.message) {
-      toast.error(error.response.data.message)
-    } else {
-      toast.error('Failed to submit class attendance')
-    }
-  } finally {
-    submittingClass.value = false
-  }
 }
 
 onMounted(() => {

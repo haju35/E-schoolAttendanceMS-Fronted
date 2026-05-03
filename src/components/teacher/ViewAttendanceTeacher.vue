@@ -221,6 +221,7 @@ const summary = computed(() => {
 const attendanceRate = computed(() => {
   if (summary.value.total === 0) return 0
   const marked = summary.value.present + summary.value.absent + summary.value.late
+  if (summary.value.total === 0) return 0
   return Math.round((marked / summary.value.total) * 100)
 })
 
@@ -257,7 +258,6 @@ const getSectionName = () => {
   return section?.name || ''
 }
 
-// FIXED: Use teacherApi.getClassTeacherClasses()
 const fetchClassTeacherClasses = async () => {
   loading.value = true
   try {
@@ -282,6 +282,8 @@ const fetchClassTeacherClasses = async () => {
         // Auto-select first section if available
         if (availableSections.value.length > 0) {
           selectedSectionId.value = availableSections.value[0].id
+          // Auto-load report after selections are set
+          await loadReport()
         }
       }
     } else {
@@ -320,6 +322,7 @@ const clearFilters = () => {
   availableSections.value = []
 }
 
+// FIXED: Use getHomeroomAttendanceByDate instead of getAttendanceForm
 const loadReport = async () => {
   if (!selectedClassId.value || !selectedSectionId.value) {
     toast.error('Please select class and section')
@@ -335,15 +338,14 @@ const loadReport = async () => {
   hasSearched.value = true
   
   try {
-    // Use teacherApi to get attendance form data
-    const response = await teacherApi.getAttendanceForm(
+    // Use the homeroom-specific endpoint
+    const response = await teacherApi.getHomeroomAttendanceByDate(
       selectedClassId.value,
       selectedSectionId.value,
-      selectedDate.value,
-      0  // For homeroom attendance, subject_id is not needed
+      selectedDate.value
     )
     
-    console.log('Attendance API Response:', response.data)
+    console.log('Homeroom Attendance API Response:', response.data)
     
     if (response.data.success) {
       const studentsData = response.data.data.students || []
@@ -374,7 +376,14 @@ const loadReport = async () => {
     }
   } catch (error: any) {
     console.error('Error loading attendance:', error)
-    toast.error(error.response?.data?.message || 'Failed to load attendance records')
+    
+    // Check if it's a route not found error
+    if (error.response?.status === 404 || error.response?.data?.message?.includes('could not be found')) {
+      toast.error('Homeroom attendance endpoint not configured. Please contact administrator.')
+      console.error('Missing route: /teacher/class-attendance/by-date')
+    } else {
+      toast.error(error.response?.data?.message || 'Failed to load attendance records')
+    }
     attendanceData.value = []
   } finally {
     loadingReport.value = false

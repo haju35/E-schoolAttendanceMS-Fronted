@@ -50,6 +50,9 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Roll No</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Student Name</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Admission No</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Present</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Absent</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Late</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Attendance %</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Actions</th>
             </tr>
@@ -69,6 +72,9 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{{ student.admission_number || '-' }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 dark:text-green-400 font-semibold">{{ student.present_count || 0 }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 dark:text-red-400 font-semibold">{{ student.absent_count || 0 }}</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-600 dark:text-yellow-400 font-semibold">{{ student.late_count || 0 }}</td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-semibold" :class="getAttendanceColor(student.attendance_percentage)">
@@ -95,7 +101,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api from '@/services/api'
+import teacherApi from '../../services/teacherApi'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
@@ -110,10 +116,10 @@ const getInitials = (name: string) => {
 }
 
 const getAttendanceColor = (percentage: number) => {
-  if (percentage >= 90) return 'text-green-600'
-  if (percentage >= 75) return 'text-blue-600'
-  if (percentage >= 60) return 'text-yellow-600'
-  return 'text-red-600'
+  if (percentage >= 90) return 'text-green-600 dark:text-green-400'
+  if (percentage >= 75) return 'text-blue-600 dark:text-blue-400'
+  if (percentage >= 60) return 'text-yellow-600 dark:text-yellow-400'
+  return 'text-red-600 dark:text-red-400'
 }
 
 const getProgressBarColor = (percentage: number) => {
@@ -126,12 +132,12 @@ const getProgressBarColor = (percentage: number) => {
 const fetchStudents = async () => {
   loading.value = true
   try {
-    // Get class teacher info from dashboard - this already contains student data
-    const dashboardRes = await api.get('/teacher/class-teacher/dashboard')
-    console.log('Dashboard response:', dashboardRes.data)
+    // Use teacherApi instead of direct api call for consistency
+    const response = await teacherApi.getClassTeacherDashboard()
+    console.log('Dashboard response:', response.data)
     
-    if (dashboardRes.data.success && dashboardRes.data.data.is_class_teacher) {
-      const info = dashboardRes.data.data.class_teacher_info
+    if (response.data.success && response.data.data.is_class_teacher) {
+      const info = response.data.data.class_teacher_info
       classInfo.value = info
       
       // Use the students data directly from the dashboard response
@@ -142,9 +148,18 @@ const fetchStudents = async () => {
           roll_number: s.roll_number || '-',
           admission_number: s.admission_number || '-',
           email: s.user?.email || '',
-          attendance_percentage: s.attendance_percentage || Math.floor(Math.random() * 30) + 70
+          present_count: s.present_count || 0,
+          absent_count: s.absent_count || 0,
+          late_count: s.late_count || 0,
+          attendance_percentage: s.attendance_percentage || 0
         }))
-        console.log('Students loaded from dashboard:', students.value.length)
+        
+        // Calculate overall class attendance
+        const totalPresent = students.value.reduce((sum, s) => sum + s.present_count, 0)
+        const totalStudents = students.value.length
+        const avgAttendance = totalStudents > 0 ? Math.round(totalPresent / totalStudents) : 0
+        
+        console.log(`Loaded ${students.value.length} students with average attendance: ${avgAttendance}%`)
       } else {
         students.value = []
         console.log('No students in dashboard response')
@@ -156,6 +171,8 @@ const fetchStudents = async () => {
   } catch (error: any) {
     console.error('Failed to fetch students:', error)
     toast.error(error.response?.data?.message || 'Failed to load students')
+    classInfo.value = null
+    students.value = []
   } finally {
     loading.value = false
   }
@@ -169,3 +186,5 @@ onMounted(() => {
   fetchStudents()
 })
 </script>
+
+

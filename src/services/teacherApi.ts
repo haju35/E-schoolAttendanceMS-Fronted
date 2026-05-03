@@ -25,7 +25,7 @@ export const teacherApi = {
             params: { section_id: sectionId } 
         }),
     
-    // Attendance
+    // Attendance (for subject teachers)
     getAttendanceForm: (classId: number, sectionId: number, date?: string, subjectId: number) => 
         api.get('/teacher/attendance', { 
             params: { 
@@ -42,18 +42,30 @@ export const teacherApi = {
     // Reports
     getAttendanceReport: (params: any) => api.get('/teacher/reports/attendance', { params }),
     
-
+    // Homeroom Teacher Specific Methods
     getClassTeacherDashboard: () => api.get('/teacher/class-teacher/dashboard'),
-
-    markClassAttendance: (data: { date: string; attendance: Array<{ student_id: number; status: string; remarks?: string }> }) => api.post('/teacher/attendance/class', data),
-
+    
+    markClassAttendance: (data: { date: string; class_room_id: number; section_id: number; attendance: Array<{ student_id: number; status: string; remarks?: string }> }) => 
+        api.post('/teacher/attendance/class', data),
+    
     getClassAttendance: (date: string) => api.get(`/teacher/class-attendance?date=${date}`),
-
+    
     getStudentClassAttendance: (studentId: number) => api.get(`/teacher/class-attendance/student/${studentId}`),
-
+    
     getClassTeacherClasses: () => api.get('/teacher/class-teacher/classes'),
     
     checkClassTeacherStatus: () => api.get('/teacher/class-teacher/status'),
+    
+    // NEW: Get homeroom attendance by date (for view attendance page)
+    getHomeroomAttendanceByDate: (classId: number, sectionId: number, date: string) => {
+        return api.get('/teacher/class-attendance/by-date', {
+            params: {
+                class_room_id: classId,
+                section_id: sectionId,
+                date: date
+            }
+        });
+    }
 };
 
 export default teacherApi;
