@@ -31,14 +31,15 @@
           />
         </div>
         <div class="flex gap-3 items-end">
-          <button 
-            @click="downloadTemplate" 
-            class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Download Template
+
+           <button 
+              @click="exportStudents" 
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+              Export Students
           </button>
           <button 
             @click="importStudents" 
@@ -469,7 +470,7 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
-import axios from "axios";
+import api from '@/services/api';
 import { useToast } from 'vue-toastification';
 
 const toast = useToast();
@@ -487,30 +488,6 @@ const importing = ref(false);
 const selectedStudents = ref([]);
 const editingStudent = ref(null);
 const selectedStudent = ref(null);
-
-// Get token and setup API
-const token = localStorage.getItem("access_token");
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    Authorization: `Bearer ${token}`,
-    'Content-Type': 'application/json'
-  }
-});
-
-// Add response interceptor for better error handling
-api.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('access_token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 const form = ref({
   name: "",
@@ -541,6 +518,27 @@ const getInitials = (name) => {
     .join('')
     .toUpperCase()
     .slice(0, 2);
+};
+
+const exportStudents = async () => {
+  try {
+    const response = await api.get('/admin/export-students', {
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'students_export_' + new Date().toISOString().slice(0,10) + '.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    toast.success('Students exported successfully');
+  } catch (err) {
+    console.error('Export error:', err);
+    toast.error('Failed to export students');
+  }
 };
 
 // Format date
@@ -603,26 +601,6 @@ const handleFileUpload = (event) => {
   file.value = event.target.files[0];
 };
 
-// Download template
-const downloadTemplate = async () => {
-  try {
-    const response = await api.get('/admin/students/export/template', {
-      responseType: 'blob'
-    });
-    
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'student_import_template.csv');
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error('Error downloading template:', err);
-    toast.error('Failed to download template. Please try again.');
-  }
-};
 
 // Import students
 const importStudents = async () => {

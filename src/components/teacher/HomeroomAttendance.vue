@@ -424,6 +424,74 @@ const enableEditClassAttendance = () => {
   toast.info('Edit mode enabled. You can now modify attendance.')
 }
 
+const submitClassAttendance = async () => {
+  if (!selectedClassIdForClass.value || !selectedSectionIdForClass.value) {
+    toast.error('Please select class and section')
+    return
+  }
+  
+  if (classStudents.value.length === 0) {
+    toast.error('No students to mark attendance for')
+    return
+  }
+  
+  submittingClass.value = true
+  
+  try {
+    // Prepare the attendance data
+    const attendanceData = classStudents.value.map(student => ({
+      student_id: student.id,
+      status: student.status,
+      remarks: student.remarks || ''
+    }))
+    
+    console.log('Sending attendance data:', attendanceData) // Debug
+    
+    const response = await api.post('/teacher/class-attendance/mark', {
+      class_room_id: selectedClassIdForClass.value,
+      section_id: selectedSectionIdForClass.value,
+      date: classAttendanceDate.value,
+      attendance: attendanceData  // ← Make sure this matches backend expectation
+    })
+    
+    if (response.data.success) {
+      toast.success('Attendance saved successfully!')
+      hasExistingAttendance.value = true
+      isEditingClassAttendance.value = false
+      await loadClassStudents()
+    } else {
+      toast.error(response.data.message || 'Failed to save attendance')
+    }
+  } catch (error: any) {
+    console.error('Submit attendance error:', error.response?.data || error)
+    
+    // Try with 'attendances' instead of 'attendance' if first attempt fails
+    if (error.response?.data?.message === 'The attendance field is required.') {
+      try {
+        const retryResponse = await api.post('/teacher/class-attendance/mark', {
+          class_room_id: selectedClassIdForClass.value,
+          section_id: selectedSectionIdForClass.value,
+          date: classAttendanceDate.value,
+          attendances: attendanceData  // ← Try with 'attendances'
+        })
+        
+        if (retryResponse.data.success) {
+          toast.success('Attendance saved successfully!')
+          hasExistingAttendance.value = true
+          isEditingClassAttendance.value = false
+          await loadClassStudents()
+        }
+      } catch (retryError: any) {
+        toast.error(retryError.response?.data?.message || 'Failed to save attendance')
+      }
+    } else {
+      toast.error(error.response?.data?.message || 'Failed to save attendance')
+    }
+  } finally {
+    submittingClass.value = false
+  }
+}
+
 onMounted(() => {
   fetchClassTeacherClasses()
 })
